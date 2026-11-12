@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-label="오리지널 컨셉 GT 렌더링 (실존 차량 아님)">
+  <title>Original concept GT — illustrative rendering, not a real production model</title>
+  <defs>
+    <linearGradient id="paint" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8d96a3"/><stop offset=".18" stop-color="#4a525d"/>
+      <stop offset=".42" stop-color="#262b33"/><stop offset=".62" stop-color="#3a414b"/>
+      <stop offset=".78" stop-color="#171a1f"/><stop offset="1" stop-color="#0a0b0d"/>
+    </linearGradient>
+    <linearGradient id="paintH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".25" stop-color="#000" stop-opacity="0"/>
+      <stop offset=".7" stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity=".5"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3340"/><stop offset=".6" stop-color="#0b0e13"/><stop offset="1" stop-color="#050608"/>
+    </linearGradient>
+    <linearGradient id="streak" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#e8f1ff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="shoulder" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".35" stop-color="#fff" stop-opacity=".55"/>
+      <stop offset=".8" stop-color="#fff" stop-opacity=".25"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="tyre" cx=".5" cy=".45" r=".55"><stop offset=".7" stop-color="#1b1b1d"/><stop offset="1" stop-color="#050505"/></radialGradient>
+    <radialGradient id="barrel" cx=".5" cy=".5" r=".5"><stop offset=".6" stop-color="#3a3e45"/><stop offset="1" stop-color="#15171a"/></radialGradient>
+    <linearGradient id="spoke" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9aa1aa"/><stop offset=".45" stop-color="#4c525a"/><stop offset="1" stop-color="#25282d"/></linearGradient>
+    <linearGradient id="lip" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c3c8cf"/><stop offset=".5" stop-color="#555b63"/><stop offset="1" stop-color="#1f2125"/></linearGradient>
+    <radialGradient id="hub" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#cfd3d9"/><stop offset="1" stop-color="#4b5058"/></radialGradient>
+    <radialGradient id="rimshine" cx=".35" cy=".25" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="caliper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a4c"/><stop offset="1" stop-color="#c94a12"/></linearGradient>
+    <radialGradient id="shadow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".85"/><stop offset=".7" stop-color="#000" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".8" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <mask id="reflMask"><rect x="0" y="422" width="1200" height="100" fill="url(#fade)"/></mask>
+    <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="glow"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="glassClip"><path d="M232 244 C300 218 400 182 478 168 C546 156 612 158 662 172 C700 184 736 204 762 222 C700 226 560 236 430 244 C340 250 270 252 232 244 Z"/></clipPath>
+    <clipPath id="bodyClip"><path d="M150 334 C140 322 136 300 140 286 C142 270 148 258 160 250 L196 236 C260 214 380 168 470 152 C540 140 610 140 668 156 C720 170 772 200 812 226 C880 236 960 246 1010 258 C1040 266 1060 282 1064 300 C1067 314 1064 326 1052 336 L1000 338 A94 94 0 0 0 810 338 L412 340 A94 94 0 0 0 224 338 Z"/></clipPath>
+  </defs>
+
+  <ellipse cx="610" cy="420" rx="520" ry="22" fill="url(#shadow)" filter="url(#blur6)"/>
+
+  <g id="car">
+    <path d="M150 334 C140 322 136 300 140 286 C142 270 148 258 160 250 L196 236 C260 214 380 168 470 152 C540 140 610 140 668 156 C720 170 772 200 812 226 C880 236 960 246 1010 258 C1040 266 1060 282 1064 300 C1067 314 1064 326 1052 336 L1000 338 A94 94 0 0 0 810 338 L412 340 A94 94 0 0 0 224 338 Z" fill="url(#paint)"/>
+    <path d="M150 334 C140 322 136 300 140 286 C142 270 148 258 160 250 L196 236 C260 214 380 168 470 152 C540 140 610 140 668 156 C720 170 772 200 812 226 C880 236 960 246 1010 258 C1040 266 1060 282 1064 300 C1067 314 1064 326 1052 336 L1000 338 A94 94 0 0 0 810 338 L412 340 A94 94 0 0 0 224 338 Z" fill="url(#paintH)"/>
+    <g clip-path="url(#bodyClip)">
+      <path d="M170 262 C420 236 760 230 1040 270 L1040 276 C760 238 420 244 170 270 Z" fill="url(#shoulder)" opacity=".7"/>
+      <rect x="120" y="300" width="960" height="60" fill="#06070a" opacity=".55"/>
+      <path d="M380 318 C560 312 760 312 820 316" stroke="#9aa3ae" stroke-opacity=".25" stroke-width="1.5" fill="none"/>
+    </g>
+    <path d="M232 244 C300 218 400 182 478 168 C546 156 612 158 662 172 C700 184 736 204 762 222 C700 226 560 236 430 244 C340 250 270 252 232 244 Z" fill="url(#glass)"/>
+    <g clip-path="url(#glassClip)">
+      <polygon points="430,140 520,140 360,260 270,260" fill="url(#streak)"/>
+      <polygon points="600,140 640,140 520,260 480,260" fill="url(#streak)" opacity=".6"/>
+    </g>
+    <path d="M232 244 C300 218 400 182 478 168 C546 156 612 158 662 172 C700 184 736 204 762 222 C700 226 560 236 430 244 C340 250 270 252 232 244 Z" fill="none" stroke="#9aa3ae" stroke-opacity=".35" stroke-width="2"/>
+    <path d="M520 166 C516 196 512 222 510 240" stroke="#0a0b0d" stroke-width="7" fill="none"/>
+    <path d="M512 252 C508 280 506 300 506 322" stroke="#05060a" stroke-opacity=".7" stroke-width="1.6" fill="none"/>
+    <path d="M790 238 C792 270 796 300 800 322" stroke="#05060a" stroke-opacity=".6" stroke-width="1.4" fill="none"/>
+    <rect x="600" y="262" width="56" height="7" rx="3.5" fill="#0d0f12" stroke="#7d858f" stroke-opacity=".5"/>
+    <path d="M752 222 C760 210 786 208 798 216 C803 226 794 234 778 234 C764 234 754 230 752 222 Z" fill="#2e343c" stroke="#000" stroke-opacity=".5"/>
+    <path d="M756 220 C766 212 784 212 794 217" stroke="#c9d0d8" stroke-opacity=".35" stroke-width="1.5" fill="none"/>
+    <path d="M200 238 C300 202 420 162 500 150 C570 140 630 144 670 156" stroke="#fff" stroke-opacity=".18" stroke-width="3" fill="none"/>
+    <path d="M1004 268 C1024 271 1044 278 1056 290" stroke="#f4f8ff" stroke-width="4" stroke-linecap="round" fill="none" filter="url(#glow)"/>
+    <path d="M140 270 C146 262 156 256 168 252" stroke="#ff2a3a" stroke-width="4.5" stroke-linecap="round" fill="none" filter="url(#glow)"/>
+    <path d="M1000 336 L1060 330 L1062 338 L1004 342 Z" fill="#050608"/>
+    <path d="M146 334 L210 340 L208 346 L150 342 Z" fill="#050608"/>
+    
+  <g id="wr">
+    <circle cx="318" cy="342" r="80" fill="url(#tyre)"/>
+    <circle cx="318" cy="342" r="77" fill="none" stroke="#2a2a2d" stroke-width="1.5"/>
+    <circle cx="318" cy="342" r="65" fill="#101113"/>
+    <circle cx="318" cy="342" r="63" fill="url(#barrel)"/>
+    <circle cx="318" cy="342" r="53" fill="#2c2f34"/>
+    <circle cx="318" cy="342" r="49" fill="none" stroke="#565b63" stroke-width="2" stroke-dasharray="3 4"/>
+    <path d="M288 312 A42 42 0 0 1 348 312 L340 322 A30 30 0 0 0 296 322 Z" fill="url(#caliper)"/>
+    <line x1="310.5" y1="326.0" x2="306.0" y2="283.0" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="325.5" y1="326.0" x2="330.0" y2="283.0" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="330.9" y1="329.9" x2="370.4" y2="312.4" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="335.5" y1="344.2" x2="377.8" y2="335.2" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="333.5" y1="350.5" x2="362.4" y2="382.7" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="321.3" y1="359.4" x2="343.0" y2="396.8" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="314.7" y1="359.4" x2="293.0" y2="396.8" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="302.5" y1="350.5" x2="273.6" y2="382.7" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="300.5" y1="344.2" x2="258.2" y2="335.2" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="305.1" y1="329.9" x2="265.6" y2="312.4" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="318" cy="342" r="63" fill="none" stroke="url(#lip)" stroke-width="5"/>
+    <circle cx="318" cy="342" r="15" fill="url(#hub)"/>
+    <circle cx="318" cy="342" r="5" fill="#1a1b1e"/>
+    <circle cx="318" cy="342" r="63" fill="url(#rimshine)"/>
+  </g>
+    
+  <g id="wf">
+    <circle cx="902" cy="342" r="80" fill="url(#tyre)"/>
+    <circle cx="902" cy="342" r="77" fill="none" stroke="#2a2a2d" stroke-width="1.5"/>
+    <circle cx="902" cy="342" r="65" fill="#101113"/>
+    <circle cx="902" cy="342" r="63" fill="url(#barrel)"/>
+    <circle cx="902" cy="342" r="53" fill="#2c2f34"/>
+    <circle cx="902" cy="342" r="49" fill="none" stroke="#565b63" stroke-width="2" stroke-dasharray="3 4"/>
+    <path d="M872 312 A42 42 0 0 1 932 312 L924 322 A30 30 0 0 0 880 322 Z" fill="url(#caliper)"/>
+    <line x1="894.5" y1="326.0" x2="890.0" y2="283.0" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="909.5" y1="326.0" x2="914.0" y2="283.0" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="914.9" y1="329.9" x2="954.4" y2="312.4" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="919.5" y1="344.2" x2="961.8" y2="335.2" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="917.5" y1="350.5" x2="946.4" y2="382.7" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="905.3" y1="359.4" x2="927.0" y2="396.8" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="898.7" y1="359.4" x2="877.0" y2="396.8" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="886.5" y1="350.5" x2="857.6" y2="382.7" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="884.5" y1="344.2" x2="842.2" y2="335.2" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/><line x1="889.1" y1="329.9" x2="849.6" y2="312.4" stroke="url(#spoke)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="902" cy="342" r="63" fill="none" stroke="url(#lip)" stroke-width="5"/>
+    <circle cx="902" cy="342" r="15" fill="url(#hub)"/>
+    <circle cx="902" cy="342" r="5" fill="#1a1b1e"/>
+    <circle cx="902" cy="342" r="63" fill="url(#rimshine)"/>
+  </g>
+  </g>
+
+  <g mask="url(#reflMask)" opacity=".45">
+    <use href="#car" transform="translate(0 844) scale(1 -1)"/>
+  </g>
+</svg>

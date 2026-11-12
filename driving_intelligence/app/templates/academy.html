@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}드라이빙 아카데미{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="eyebrow">AI Driving Academy · Education Loop</p>
+  <h1>드라이빙 아카데미</h1>
+  <p class="lead">주행 분석 → 약점 파악 → 스쿨 추천 → 예약·수료 → 재평가로 이어지는 성장 루프입니다.</p>
+</header>
+
+<ol class="loop">
+  {% for t, d in [('운전 패턴 분석','실제 주행 데이터 기반'),('개선 기술 파악','제동·조향·자세 제어'),('스쿨 추천','교육 내용·위치·차종 적합성'),('예약 및 수료','스쿨·강사 연결 (Phase 3)'),('재평가','교육 전후 변화 분석')] %}
+    <li class="loop__step"><span class="loop__n">{{ loop.index }}</span><b>{{ t }}</b><span class="muted small">{{ d }}</span></li>
+  {% endfor %}
+</ol>
+
+<section class="card">
+  <div class="card__head">
+    <h2>나를 위한 추천</h2>
+    {% if latest_id %}<a class="link" href="{{ url_for('main.report', rid=latest_id) }}">근거 리포트 #{{ latest_id }} →</a>{% endif %}
+  </div>
+  {% if recs %}
+    <div class="program-grid">
+      {% for rec in recs %}{% set p = rec.program %}
+        <article class="program program--rec">
+          <p class="chip chip--accent">{{ p.category }}</p>
+          <h3>{{ p.title }}</h3>
+          <p class="reason">{{ rec.reason }}</p>
+          <p class="muted small">{{ p.summary }}</p>
+          <button class="btn btn--ghost btn--sm" type="button" disabled title="스쿨 예약 API 연동 후 제공">예약 (준비 중)</button>
+        </article>
+      {% endfor %}
+    </div>
+  {% elif latest_id %}
+    <p class="muted">최근 리포트 기준으로 개선이 시급한 항목이 없습니다.</p>
+  {% else %}
+    <p class="muted">주행 분석을 먼저 실행하면 약점에 맞춘 프로그램을 추천합니다.</p>
+    <a class="btn btn--ghost btn--sm" href="{{ url_for('main.analyze_page') }}">주행 분석하기</a>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>전체 교육 프로그램</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>카테고리</th><th>프로그램</th><th>수준</th><th>기간</th><th>장소</th><th>기관</th></tr></thead>
+      <tbody>
+        {% for p in programs %}
+          <tr><td><span class="chip">{{ p.category }}</span></td><td><b>{{ p.title }}</b><p class="muted small">{{ p.summary }}</p></td>
+              <td>{{ p.level }}</td><td>{{ p.duration }}</td><td>{{ p.venue }}</td><td class="muted">{{ p.school }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="note">{{ program_note }}</p>
+</section>
+{% endblock %}

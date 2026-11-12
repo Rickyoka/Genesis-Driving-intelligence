@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, bar %}
+{% block title %}Magma 데이터 랩{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="eyebrow">Magma Performance Data Lab</p>
+  <h1>고성능 모델 개발을 위한 드라이빙 데이터</h1>
+  <p class="lead">오너가 동의한 주행 데이터를 익명으로 집계해, 차세대 고성능 모델의 브레이크·열관리, 섀시·조향, 파워트레인 UX, 고객 경험을 설계하는 근거로 활용합니다. 집계 결과만 다루며 위치·시간·주행 궤적은 내보내지 않습니다.</p>
+</header>
+
+<section class="card">
+  <h2>데이터 파이프라인</h2>
+  <div class="pipeline">
+    <div><b>1. 수집</b>차량 데이터·앱 센서·웨어러블 (주행 분석 결과만 저장)</div>
+    <div><b>2. 동의·익명화</b>명시적 동의, 위치·시간·궤적 제거, 언제든 철회</div>
+    <div><b>3. 집계</b>차종·파워트레인·도로 유형별 통계, {{ min_group }}명 미만 그룹 비공개</div>
+    <div><b>4. 개발 환류</b>섀시·브레이크·열관리·주행 모드·사운드 튜닝 검증 지표</div>
+  </div>
+</section>
+
+<div class="lab-banner">
+  <h2 class="m0">데모 플릿 분석 <span class="synthetic">합성 데이터 · {{ agg.n }}명</span></h2>
+  <a class="btn btn--ghost btn--sm" href="{{ url_for('main.datalab_export', source='fleet') }}">집계 JSON 내보내기</a>
+</div>
+<p class="note mt0">시연을 위해 생성한 합성 데이터입니다. 실제 제네시스 오너 데이터가 아니며, 아래 인사이트는 분석 방식을 보여주는 예시입니다.</p>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>차종별 제동 열부하 지수</h2>
+    <div class="hbars hbar--magma">
+      {% set maxb = agg.models|map(attribute='brake_load_index')|max %}
+      {% for m in agg.models|sort(attribute='brake_load_index', reverse=true) %}
+        <div class="hbar"><span>{{ m.model }}{% if m.powertrain == 'EV' %} <span class="chip chip--accent">EV</span>{% endif %}</span>{{ bar((m.brake_load_index / maxb * 100)|round) }}<b>{{ m.brake_load_index }}</b></div>
+      {% endfor %}
+    </div>
+    <p class="note">지수 = 공차중량(t) × 10 km당 급제동 횟수. 반복 제동 시 브레이크 열부하를 비교하기 위한 상대 지표입니다.</p>
+  </section>
+  <section class="card">
+    <h2>출력 대비 중량 × 급가속 빈도</h2>
+    <figure class="scatter m0">
+      <svg viewBox="0 0 {{ scatter.width }} {{ scatter.height }}" role="img" aria-label="출력 대비 중량과 급가속 빈도 산점도, 상관계수 {{ agg.corr_pw_accel }}">
+        <line class="axis" x1="{{ scatter.pad }}" y1="{{ scatter.height - scatter.pad }}" x2="{{ scatter.width - scatter.pad }}" y2="{{ scatter.height - scatter.pad }}"/>
+        <line class="axis" x1="{{ scatter.pad }}" y1="{{ scatter.pad }}" x2="{{ scatter.pad }}" y2="{{ scatter.height - scatter.pad }}"/>
+        {% for x, y in scatter.points %}<circle cx="{{ x }}" cy="{{ y }}" r="3"/>{% endfor %}
+        <text x="{{ scatter.pad }}" y="{{ scatter.height - 8 }}">{{ scatter.xmin }} PS/t</text>
+        <text x="{{ scatter.width - scatter.pad - 60 }}" y="{{ scatter.height - 8 }}">{{ scatter.xmax }} PS/t</text>
+        <text x="{{ scatter.pad + 6 }}" y="{{ scatter.pad + 4 }}">급가속 {{ scatter.ymax }}회/10km</text>
+      </svg>
+    </figure>
+    <p class="note">상관계수 r = {{ agg.corr_pw_accel }} · 점 하나가 운전자 한 명입니다.</p>
+  </section>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>선호 도로 유형</h2>
+    <div class="hbars">
+      {% for t in agg.tags %}<div class="hbar"><span>{{ t.label }}</span>{{ bar(t.share) }}<b>{{ t.share }}%</b></div>{% endfor %}
+    </div>
+    <p class="note">산악·헤어핀 선호: 전동화 고성능 {{ agg.ev_mountain_share }}% · 내연기관 {{ agg.ice_mountain_share }}%</p>
+  </section>
+  <section class="card">
+    <h2>차종별 평균 지표</h2>
+    <div class="table-wrap">
+      <table class="table table--compact">
+        <thead><tr><th>차종</th><th>n</th><th>종합</th><th>제동</th><th>코너링</th><th>급가속/10km</th></tr></thead>
+        <tbody>
+          {% for m in agg.models %}<tr><td>{{ m.model }}</td><td>{{ m.n }}</td><td>{{ m.overall }}</td><td>{{ m.braking }}</td><td>{{ m.cornering }}</td><td>{{ m.harsh_accel_per10 }}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<section class="card">
+  <h2>개발 인사이트 <span class="synthetic">합성 데이터 예시</span></h2>
+  <div class="insights">
+    {% for i in insights %}
+      <div class="insight"><p class="label">{{ i.area }}</p><b>{{ i.finding }}</b><p class="muted small">→ {{ i.action }}</p></div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="card">
+  <div class="card__head"><h2>내 데이터 제공</h2>{% if consent %}<span class="chip chip--ok">동의함 · {{ consent_at }}</span>{% else %}<span class="chip">미동의</span>{% endif %}</div>
+  <p class="muted">동의하면 내 주행 분석 결과(점수·이벤트 빈도·차종)가 익명 집계에 포함됩니다. 위치·시간·주행 궤적은 포함되지 않으며, 언제든 철회할 수 있습니다.</p>
+  <form method="post" action="{{ url_for('main.datalab_consent') }}" class="consent">
+    {{ csrf() }}
+    {% if consent %}
+      <input type="hidden" name="consent" value="0">
+      <button class="btn btn--ghost btn--sm" type="submit">동의 철회</button>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('main.datalab_export', source='mine') }}">내 집계 JSON</a>
+    {% else %}
+      <input type="hidden" name="consent" value="1">
+      <button class="btn btn--primary btn--sm" type="submit">익명 데이터 제공에 동의</button>
+    {% endif %}
+  </form>
+  {% if consent %}
+    {% if mine_agg and mine_agg.n %}
+      <p class="note">반영된 내 리포트 {{ mine_agg.n }}건 (차량이 지정된 리포트만). 차종 그룹이 {{ min_group }}건 미만이면 차종별 통계는 표시되지 않습니다.</p>
+    {% else %}
+      <p class="note">아직 반영할 리포트가 없습니다. 차량을 선택한 상태로 주행 분석을 실행하세요.</p>
+    {% endif %}
+  {% endif %}
+</section>
+{% endblock %}

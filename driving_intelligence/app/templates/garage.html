@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, vehicle_line %}
+{% block title %}내 차고{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="eyebrow">Vehicle Intelligence</p>
+  <h1>내 차고</h1>
+  <p class="lead">파워트레인, 출력, 토크, 구동 방식, 중량을 등록하면 코스 점수·HUD 안내·시동 사운드가 차량 특성에 맞춰 바뀝니다. 전동화 모델은 회생제동 중심으로 안내합니다.</p>
+</header>
+
+<div class="grid-garage">
+  <section class="card">
+    <h2>등록 차량</h2>
+    {% if vehicles %}
+      <ul class="vlist">
+        {% for v in vehicles %}
+          <li class="vitem{% if active and active.id == v.id %} is-active{% endif %}">
+            <div class="vthumb{{ ' vthumb--photo' if v.photo else '' }}"><img src="{{ vehicle_image_url(v) }}" alt="{{ v.nickname }}" loading="lazy"></div>
+            <div class="vitem__main">
+              <p class="vitem__name">{{ v.nickname }} {% if active and active.id == v.id %}<span class="chip chip--accent">현재 차량</span>{% endif %}</p>
+              <p class="muted small">{{ vehicle_line(v) }}</p>
+              <p class="muted small">{{ v.engine or '엔진 형식 미입력' }} · {{ SIZE_LABELS[v.size_class] }} · {{ '%.0f'|format(v.power_ps / (v.weight_kg / 1000)) }} PS/t</p>
+              <details class="photo-slot">
+                <summary>{{ '사진 교체' if v.photo else '사진 배치' }} <span class="muted small">{{ '· 기본 컨셉 렌더링 사용 중' if not v.photo }}</span></summary>
+                <form method="post" action="{{ url_for('main.garage_photo', vid=v.id) }}" enctype="multipart/form-data" class="photo-form">{{ csrf() }}
+                  <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required>
+                  <label class="check small"><input type="checkbox" name="rights" value="1" required><span>직접 촬영했거나 사용 권한이 있는 이미지입니다</span></label>
+                  <div class="photo-form__row">
+                    <button class="btn btn--primary btn--sm" type="submit">배치</button>
+                    <span class="muted small">JPG·PNG·WebP · 최대 8 MB · 위치정보(EXIF)는 자동 삭제</span>
+                  </div>
+                </form>
+                {% if v.photo %}
+                  <form method="post" action="{{ url_for('main.garage_photo_delete', vid=v.id) }}">{{ csrf() }}
+                    <button class="btn btn--ghost btn--sm" type="submit">사진 내리기</button></form>
+                {% endif %}
+              </details>
+            </div>
+            <div class="vitem__actions">
+              {% if not (active and active.id == v.id) %}
+                <form method="post" action="{{ url_for('main.garage_activate', vid=v.id) }}">{{ csrf() }}
+                  <button class="btn btn--ghost btn--sm" type="submit">선택</button></form>
+              {% endif %}
+              <form method="post" action="{{ url_for('main.garage_delete', vid=v.id) }}" data-confirm="'{{ v.nickname }}' 차량을 삭제할까요?">{{ csrf() }}
+                <button class="btn btn--danger btn--sm" type="submit">삭제</button></form>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty">
+        <p>등록된 차량이 없습니다.</p>
+        <p class="muted small">오른쪽에서 예시 차량을 불러오거나 직접 입력하세요.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>차량 등록</h2>
+    <form method="post" action="{{ url_for('main.garage_add') }}" class="form" data-vehicle-form>
+      {{ csrf() }}
+      <label class="field field--full">
+        <span>제네시스 라인업 불러오기</span>
+        <select data-preset-select>
+          <option value="">직접 입력</option>
+          {% for p in presets %}<option value="{{ p.key }}">{{ p.maker }} {{ p.model }}</option>{% endfor %}
+        </select>
+        <small class="muted">{{ preset_note }}</small>
+      </label>
+      <label class="field"><span>차량 별칭 *</span><input name="nickname" maxlength="30" required placeholder="예: 주말용 GV60 마그마"></label>
+      <label class="field"><span>제조사 *</span><input name="maker" maxlength="30" required value="Genesis"></label>
+      <label class="field"><span>모델 *</span><input name="model" maxlength="50" required></label>
+      <label class="field"><span>엔진 형식</span><input name="engine" maxlength="50" placeholder="예: 직렬 4기통 2.0L 터보"></label>
+      <label class="field"><span>최고출력 (PS) *</span><input name="power_ps" type="number" min="40" max="2000" required inputmode="numeric"></label>
+      <label class="field"><span>최대토크 (Nm) *</span><input name="torque_nm" type="number" min="50" max="3000" required inputmode="numeric"></label>
+      <label class="field"><span>공차중량 (kg) *</span><input name="weight_kg" type="number" min="500" max="4000" required inputmode="numeric"></label>
+      <label class="field"><span>구동 방식 *</span>
+        <select name="drivetrain" required>{% for d in drivetrains %}<option value="{{ d }}">{{ DRIVETRAIN_LABELS[d] }}</option>{% endfor %}</select></label>
+      <label class="field"><span>변속기 *</span>
+        <select name="transmission" required>{% for t in transmissions %}<option value="{{ t }}">{{ TRANSMISSION_LABELS[t] }}</option>{% endfor %}</select></label>
+      <label class="field"><span>차체 크기 *</span>
+        <select name="size_class" required>{% for s in sizes %}<option value="{{ s }}">{{ SIZE_LABELS[s] }}</option>{% endfor %}</select></label>
+      <div class="field field--full"><button class="btn btn--primary" type="submit">등록하고 현재 차량으로 선택</button></div>
+    </form>
+    <script type="application/json" id="preset-data">{{ presets|tojson }}</script>
+  </section>
+</div>
+{% endblock %}

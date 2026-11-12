@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring, csrf %}
+{% block title %}코스 추천{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="eyebrow">Route Discovery · Fun Driving Score</p>
+  <h1>차량 맞춤 코스 추천</h1>
+  <p class="lead">곡률·고저차·노면·경관·휴게 시설·혼잡도·위험도를 모드별 가중치로 평가하고, 차량 특성과 날씨·시간대를 반영합니다. <b>빠른 주행이나 제한속도 초과는 점수 기준이 아닙니다.</b></p>
+</header>
+
+<form class="filters card" method="get" action="{{ url_for('main.courses') }}" data-autosubmit>
+  <fieldset class="seg" aria-label="드라이빙 모드">
+    {% for key, m in modes.items() %}
+      <label class="seg__opt"><input type="radio" name="mode" value="{{ key }}" {{ 'checked' if cond.mode == key }}><span>{{ m.label }}</span></label>
+    {% endfor %}
+  </fieldset>
+  <label class="field field--inline"><span>날씨</span>
+    <select name="weather">{% for k, label in weathers.items() %}<option value="{{ k }}" {{ 'selected' if cond.weather == k }}>{{ label }}</option>{% endfor %}</select></label>
+  <label class="field field--inline"><span>유형</span>
+    <select name="tag"><option value="">전체</option>{% for k, label in tags.items() %}<option value="{{ k }}" {{ 'selected' if cond.tag == k }}>{{ label }}</option>{% endfor %}</select></label>
+  <label class="check"><input type="checkbox" name="night" value="1" {{ 'checked' if cond.night }}><span>야간 주행</span></label>
+  <label class="check"><input type="checkbox" name="fav" value="1" {{ 'checked' if cond.fav }}><span>저장한 코스만</span></label>
+  <label class="check"><input type="checkbox" name="learn" value="1" {{ 'checked' if cond.learn }}><span>학습 반영</span></label>
+  <input type="hidden" name="learn" value="0">{# must follow the checkbox: first value wins #}
+  <noscript><button class="btn btn--ghost btn--sm" type="submit">적용</button></noscript>
+</form>
+
+<div class="learn">
+  <p class="learn__t"><span class="dot{{ '' if personal.active else ' dot--off' }}"></span>Learned Navigation {{ '· 학습 반영 중' if personal.active else ('· 꺼짐' if not cond.learn else '· 학습 데이터 대기') }}</p>
+  {% if personal.active %}
+    <ul>{% for r in personal.reasons %}<li>{{ r }}</li>{% endfor %}</ul>
+  {% elif cond.learn %}
+    <p class="muted small m0">주행 분석을 실행하거나 코스를 저장하면 운전 습관과 취향을 학습해 추천 순위가 바뀝니다.</p>
+  {% endif %}
+  <span class="muted small">리포트 {{ personal.reports_used }}건 · 저장 코스 {{ personal.favorites_used }}곳</span>
+</div>
+
+<div class="context-bar">
+  <p><span class="label">모드</span> <b>{{ modes[cond.mode].label }}</b> <span class="muted">{{ modes[cond.mode].desc }}</span></p>
+  <p><span class="label">차량</span>
+    {% if vehicle %}<b>{{ vehicle.nickname }}</b> <span class="muted">{{ vehicle.maker }} {{ vehicle.model }}</span>
+      {% if vehicles|length > 1 %}<a class="link" href="{{ url_for('main.garage') }}">변경</a>{% endif %}
+    {% else %}<span class="muted">미등록 (도로 특성만 반영)</span> <a class="link" href="{{ url_for('main.garage') }}">차량 등록</a>{% endif %}
+  </p>
+</div>
+
+{% if ranked %}
+<div class="course-grid">
+  {% for s in ranked %}
+    {% set c = s.course %}
+    <article class="course card{% if s.excluded_reason %} is-excluded{% endif %}">
+      <div class="course__top">
+        {{ ring(s.score if not s.excluded_reason else none, 'md', c.name) }}
+        <div class="course__title">
+          <h3><a href="{{ url_for('main.course_detail', course_id=c.id, mode=cond.mode, weather=cond.weather, night='1' if cond.night else none) }}">{{ c.name }}</a></h3>
+          <p class="muted small">{{ c.region }}</p>
+          <span class="chip chip--grade-{{ 'x' if s.excluded_reason else ('a' if s.score >= 75 else ('b' if s.score >= 60 else ('c' if s.score >= 45 else 'd'))) }}">{{ s.grade }}</span>
+          {% if c.id in stamped %}<span class="chip chip--ok">스탬프 ✓</span>{% else %}<span class="chip chip--accent">+{{ stamp_points }}P</span>{% endif %}
+        </div>
+        <form method="post" action="{{ url_for('main.course_favorite', course_id=c.id) }}" class="fav">{{ csrf() }}
+          <button type="submit" class="fav__btn{% if c.id in favs %} is-on{% endif %}" aria-pressed="{{ 'true' if c.id in favs else 'false' }}" aria-label="{{ '저장 해제' if c.id in favs else '코스 저장' }}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>
+          </button>
+        </form>
+      </div>
+      <dl class="specs">
+        <div><dt>거리</dt><dd>약 {{ c.length_km|round|int }} km</dd></div>
+        <div><dt>곡률</dt><dd>{{ c.curve_level }}/5</dd></div>
+        <div><dt>고저차</dt><dd>약 {{ c.elevation_m }} m</dd></div>
+        <div><dt>위험도</dt><dd class="{{ 'warn' if c.risk >= 4 }}">{{ c.risk }}/5</dd></div>
+      </dl>
+      <p class="small">{{ c.highlights }}</p>
+      {% if s.excluded_reason %}<p class="alert small">{{ s.excluded_reason }}</p>{% endif %}
+      <div class="tags">{% for t in c.tags %}<span class="tag">{{ tags.get(t, t) }}</span>{% endfor %}</div>
+    </article>
+  {% endfor %}
+</div>
+{% else %}
+  <div class="card empty"><p>조건에 맞는 코스가 없습니다.</p><a class="link" href="{{ url_for('main.courses') }}">필터 초기화</a></div>
+{% endif %}
+<p class="note">{{ course_note }}</p>
+{% endblock %}

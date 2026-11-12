@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring, bar, csrf %}
+{% block title %}주행 리포트 #{{ row.id }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('main.analyze_page') }}">← 주행 분석</a>
+<header class="page-head page-head--row">
+  <div>
+    <p class="eyebrow">Driver Skill Analysis · 리포트 #{{ row.id }}</p>
+    <h1>운전자 분석 리포트</h1>
+    <p class="muted">{{ row.created_at }} · {{ row.nickname or '차량 미지정' }} · {{ row.source }}</p>
+  </div>
+  <form method="post" action="{{ url_for('main.report_delete', rid=row.id) }}" data-confirm="이 리포트를 삭제할까요?">{{ csrf() }}
+    <button class="btn btn--danger btn--sm" type="submit">리포트 삭제</button></form>
+</header>
+
+<section class="report-hero card">
+  <div class="report-hero__score">
+    {{ ring(r.overall, 'xl', '종합 안정성') }}
+    <div>
+      <p class="label">종합 안정성 지표 · 100점 만점</p>
+      <p class="report-hero__v">개선 우선 항목<br><span class="accent">{{ r.metrics[r.weakest].label }}</span></p>
+      <p class="muted small">평가 가능한 항목의 평균입니다. 학습·개선을 돕는 지표이며 운전자를 단정적으로 평가하지 않습니다.</p>
+    </div>
+  </div>
+  <dl class="specs specs--wide">
+    <div><dt>주행 거리</dt><dd>{{ r.distance_km }} km</dd></div>
+    <div><dt>주행 시간</dt><dd>{{ r.duration_min }} 분</dd></div>
+    <div><dt>샘플</dt><dd>{{ '{:,}'.format(r.samples) }} · {{ r.sample_rate_hz }} Hz</dd></div>
+    <div><dt>급가속</dt><dd>{{ r.events.harsh_accel }} 회</dd></div>
+    <div><dt>급제동</dt><dd>{{ r.events.harsh_brake }} 회</dd></div>
+    <div><dt>급선회</dt><dd>{{ r.events.harsh_corner if r.has_lateral else '–' }}{{ ' 회' if r.has_lateral }}</dd></div>
+  </dl>
+</section>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>항목별 지표</h2>
+    <ul class="metrics">
+      {% for key, m in r.metrics.items() %}
+        <li class="metric{% if key == r.weakest %} is-weak{% endif %}">
+          <div class="metric__row">
+            <span>{{ m.label }}</span>
+            <b>{{ m.score if m.score is not none else '데이터 없음' }}</b>
+          </div>
+          {% if m.score is not none %}{{ bar(m.score, 'bar--lo' if m.score < 60 else ('bar--mid' if m.score < 75 else 'bar--hi')) }}{% endif %}
+          <p class="muted small">{{ m.detail }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>속도 프로파일</h2>
+    <figure class="trace">
+      <svg viewBox="0 0 {{ r.trace.width }} {{ r.trace.height + 10 }}" preserveAspectRatio="none" role="img" aria-label="시간에 따른 속도 그래프, 급제동 지점 표시">
+        {% for gy in [0.25, 0.5, 0.75] %}<line class="trace__grid" x1="0" x2="{{ r.trace.width }}" y1="{{ (r.trace.height * gy)|round(1) }}" y2="{{ (r.trace.height * gy)|round(1) }}"/>{% endfor %}
+        {% for mx in r.trace.markers %}<line class="trace__mark" x1="{{ mx }}" x2="{{ mx }}" y1="0" y2="{{ r.trace.height }}"/>{% endfor %}
+        <polyline class="trace__line" points="{{ r.trace.points }}"/>
+      </svg>
+      <figcaption class="trace__legend">
+        <span><i class="lg lg--line"></i> 속도 (최대 {{ r.trace.vmax }} km/h)</span>
+        <span><i class="lg lg--mark"></i> 급제동 지점</span>
+        <span class="muted">0 – {{ r.trace.duration_min }} 분</span>
+      </figcaption>
+    </figure>
+    {% if r.derived_accel %}<p class="note">종방향 가속도는 속도 변화로 계산했습니다 (accel_long_g 열 없음).</p>{% endif %}
+    {% if r.skipped_rows %}<p class="note">형식 오류 등으로 {{ r.skipped_rows }}행을 제외했습니다.</p>{% endif %}
+    <p class="note">판정 기준(프로토타입): 급가속 &gt; {{ r.thresholds.harsh_accel_g }} g · 급제동 &lt; −{{ r.thresholds.harsh_brake_g }} g · 급선회 &gt; {{ r.thresholds.harsh_corner_g }} g. 실차·강사 검증 데이터로 보정이 필요합니다.</p>
+  </section>
+</div>
+
+{% if r.heart %}
+<section class="card">
+  <div class="card__head">
+    <h2>웨어러블 연동 · 운전자 부하</h2>
+    <a class="link" href="{{ url_for('main.ecosystem') }}">가민·스마트워치 연동 컨셉 →</a>
+  </div>
+  <dl class="specs heart">
+    <div><dt>평균 심박</dt><dd>{{ r.heart.avg }} bpm</dd></div>
+    <div><dt>최고 심박</dt><dd>{{ r.heart.max }} bpm</dd></div>
+    <div><dt>급조작 직후 (6초)</dt><dd>{{ r.heart.post_event_avg ~ ' bpm' if r.heart.post_event_avg is not none else '–' }}{% if r.heart.post_event_delta is not none %} <span class="{{ 'neg' if r.heart.post_event_delta > 3 else 'muted' }}">({{ '%+d'|format(r.heart.post_event_delta) }})</span>{% endif %}</dd></div>
+  </dl>
+  <p class="note">심박은 운전 중 긴장도를 참고하는 보조 지표이며 의료적 판단에 쓰이지 않습니다. 데이터 커버리지 {{ r.heart.coverage_pct }}%.</p>
+</section>
+{% endif %}
+
+<section class="card">
+  <div class="card__head">
+    <h2>AI Driving Academy 추천</h2>
+    <a class="link" href="{{ url_for('main.academy_page') }}">전체 프로그램 →</a>
+  </div>
+  {% if recs %}
+    <div class="program-grid">
+      {% for rec in recs %}
+        {% set p = rec.program %}
+        <article class="program">
+          <p class="chip">{{ p.category }}</p>
+          <h3>{{ p.title }}</h3>
+          <p class="reason">{{ rec.reason }}</p>
+          <p class="muted small">{{ p.summary }}</p>
+          <p class="small">{{ p.level }} · {{ p.duration }} · {{ p.venue }}</p>
+          <p class="muted small">{{ p.school }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted">개선이 시급한 항목이 없습니다. 현재 운전 습관을 유지하세요.</p>
+  {% endif %}
+  <p class="note">교육 추천은 학습 제안이며 운전 자격·안전성을 인증하지 않습니다. {{ program_note }}</p>
+</section>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}경쟁 비교{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="eyebrow">Competitive Landscape</p>
+  <h1>경쟁 브랜드 앱과의 비교</h1>
+  <p class="lead">고성능 브랜드의 공식 앱은 대부분 <b>서킷 전용 텔레메트리</b>에 집중합니다. Driving Intelligence는 공도의 안전한 즐거움에서 교육·서킷까지 이어지는 <b>드라이버 성장 플랫폼</b>이자, 고성능 모델 개발 데이터를 축적하는 구조로 차별화합니다.</p>
+</header>
+
+<section class="card">
+  <div class="table-wrap">
+    <table class="table cmp">
+      <thead>
+        <tr><th>구분</th><th>AMG Track Pace</th><th>BMW M Laptimer</th><th>McLaren Track Telemetry</th><th>Lexus F Sport</th><th class="us">Driving Intelligence<br>for Genesis (컨셉)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b>사용 범위</b></td>
+          <td>서킷 전용 앱</td><td>폐쇄 서킷 전용</td><td>서킷 랩 분석</td><td class="na">공식 텔레메트리 앱 확인 못함</td>
+          <td class="us"><span class="yes">공도 + 서킷 분리</span><br><span class="muted small">공도는 안전 안내만</span></td></tr>
+        <tr><td><b>텔레메트리</b></td>
+          <td>80개 이상 데이터, 영상 오버레이</td><td>스로틀·브레이크·RPM·G 기록, 랩 비교</td><td>실시간 랩·섹터 스플릿, 드라이버 비교</td><td class="na">–</td>
+          <td class="us">가감속·조향·코너링 지표<br><span class="muted small">서킷 텔레메트리는 Phase 4</span></td></tr>
+        <tr><td><b>공도 코스 추천</b></td>
+          <td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td>
+          <td class="us"><span class="yes">차량·날씨·주행 기록 학습</span></td></tr>
+        <tr><td><b>HUD·내비 연동</b></td>
+          <td>차량 인포테인먼트에 설치</td><td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td><td class="na">–</td>
+          <td class="us"><span class="yes">코너 예고·감속 안내 (컨셉)</span></td></tr>
+        <tr><td><b>교육 연계</b></td>
+          <td class="na">앱 연계 확인 못함</td><td class="na">앱 연계 확인 못함</td><td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td>
+          <td class="us"><span class="yes">약점 진단 → 교육 추천 → 재평가</span></td></tr>
+        <tr><td><b>성장 기록</b></td>
+          <td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td>
+          <td class="us"><span class="yes">Driving Passport</span></td></tr>
+        <tr><td><b>시계·웨어러블</b></td>
+          <td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td>
+          <td class="us"><span class="yes">심박 연동, 시계 협업 제안</span></td></tr>
+        <tr><td><b>개발 데이터 환류</b></td>
+          <td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td><td class="na">확인 범위 밖</td>
+          <td class="us"><span class="yes">동의 기반 익명 집계 → Magma</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">경쟁사 정보는 2026년 11월 기준 공개 자료로 확인한 범위입니다. '확인 범위 밖'은 기능이 없다는 뜻이 아니라 이번 조사에서 확인하지 못했다는 뜻이므로, 발표 전 최신 정보로 다시 확인하세요.
+    출처: <a class="link" href="https://www.mercedes-amg.com/en/amg-track-pace" target="_blank" rel="noopener noreferrer">Mercedes-AMG Track Pace</a> ·
+    <a class="link" href="https://www.bmwblog.com/?p=110227" target="_blank" rel="noopener noreferrer">BMWBLOG (M Laptimer)</a> ·
+    <a class="link" href="https://cars.mclaren.com/zh_zh/ownership/mclaren-track-telemetry" target="_blank" rel="noopener noreferrer">McLaren Track Telemetry</a> ·
+    <a class="link" href="https://www.evoindia.com/features/special-features/amg-track-pace" target="_blank" rel="noopener noreferrer">evo India</a></p>
+</section>
+
+<section>
+  <h2>차별화 포인트</h2>
+  <div class="diff-grid">
+    <div class="diff"><p class="diff__n">01 · SCOPE</p><h3>서킷 밖의 99%</h3><p class="muted small">대부분의 주행은 공도에서 일어납니다. 공도에서는 안전한 즐거움을, 서킷에서는 성능 코칭을 제공해 사용 빈도를 확보합니다.</p></div>
+    <div class="diff"><p class="diff__n">02 · LOOP</p><h3>진단 → 교육 → 재평가</h3><p class="muted small">텔레메트리를 보여주는 데서 끝나지 않고, 약점을 교육으로 연결하고 성장을 기록합니다.</p></div>
+    <div class="diff"><p class="diff__n">03 · DATA</p><h3>Magma 개발 데이터</h3><p class="muted small">동의한 오너들의 실제 도로·운전 데이터를 익명 집계해 고성능 라인업 개발의 근거로 씁니다. <a class="link" href="{{ url_for('main.datalab_page') }}">데이터 랩 →</a></p></div>
+  </div>
+</section>
+{% endblock %}

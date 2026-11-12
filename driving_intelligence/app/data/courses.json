@@ -1,0 +1,679 @@
+{
+  "_meta": {
+    "version": "0.1.0",
+    "note": "프로토타입용 샘플 평가값입니다. 길이·고저차·등급은 현장 실측과 공공 공간데이터로 검증하기 전의 추정치입니다.",
+    "scales": {
+      "curve_level": "1(완만)~5(연속 급커브)",
+      "hairpin": "0(없음)~3(많음)",
+      "surface": "1(불량)~5(우수)",
+      "scenery": "1~5",
+      "facilities": "1(거의 없음)~5(충분)",
+      "congestion": "1(한산)~5(혼잡)",
+      "risk": "1(낮음)~5(높음)",
+      "width": "narrow | medium | wide",
+      "checkpoint": "스탬프 지오펜스 중심(WGS84)과 반경(m)"
+    },
+    "checkpoint_note": "스탬프 체크포인트 좌표는 프로토타입용 근사값입니다. 실서비스 전 현장 측량 또는 지도 API로 검증하고, 반경(radius_m)을 조정해야 합니다.",
+    "route_note": "경로 출발·도착 지점은 근사값입니다. 지도에서 마커를 끌어 실제 코스 시작·끝으로 조정할 수 있으며, 실서비스 전 검증이 필요합니다."
+  },
+  "courses": [
+    {
+      "id": "bugak-skyway",
+      "name": "북악스카이웨이",
+      "region": "서울 종로·성북",
+      "tags": [
+        "urban",
+        "view",
+        "night"
+      ],
+      "length_km": 9,
+      "curve_level": 3,
+      "hairpin": 1,
+      "elevation_m": 250,
+      "surface": 4,
+      "scenery": 4,
+      "facilities": 4,
+      "congestion": 4,
+      "risk": 3,
+      "width": "medium",
+      "night_ok": true,
+      "winter_caution": true,
+      "highlights": "도심 근교 야경과 짧은 와인딩. 팔각정 전망 포인트.",
+      "caution": "주말 차량·보행자·자전거가 많습니다. 산책로 횡단 구간 서행.",
+      "checkpoint": {
+        "label": "북악팔각정 전망대",
+        "lat": 37.6033,
+        "lng": 126.9813,
+        "radius_m": 800
+      },
+      "route": {
+        "start": {
+          "label": "창의문",
+          "lat": 37.5925,
+          "lng": 126.9665
+        },
+        "end": {
+          "label": "정릉 아리랑고개",
+          "lat": 37.6028,
+          "lng": 127.0035
+        }
+      }
+    },
+    {
+      "id": "manhangjae",
+      "name": "만항재 (함백산로)",
+      "region": "강원 정선·태백",
+      "tags": [
+        "mountain",
+        "view"
+      ],
+      "length_km": 15,
+      "curve_level": 4,
+      "hairpin": 2,
+      "elevation_m": 700,
+      "surface": 3,
+      "scenery": 5,
+      "facilities": 2,
+      "congestion": 2,
+      "risk": 4,
+      "width": "medium",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "국내 최고 수준 고도의 포장 고갯길. 계절 경관이 뛰어남.",
+      "caution": "고도차가 커 긴 내리막에서 브레이크 과열 주의. 동절기 결빙.",
+      "checkpoint": {
+        "label": "만항재 정상",
+        "lat": 37.1517,
+        "lng": 128.9139,
+        "radius_m": 1500
+      },
+      "route": {
+        "start": {
+          "label": "정선 고한읍",
+          "lat": 37.2065,
+          "lng": 128.8483
+        },
+        "end": {
+          "label": "태백 화방재",
+          "lat": 37.146,
+          "lng": 128.956
+        }
+      }
+    },
+    {
+      "id": "jianjae",
+      "name": "지안재",
+      "region": "경남 함양",
+      "tags": [
+        "mountain",
+        "hairpin",
+        "view"
+      ],
+      "length_km": 3,
+      "curve_level": 5,
+      "hairpin": 3,
+      "elevation_m": 200,
+      "surface": 3,
+      "scenery": 5,
+      "facilities": 1,
+      "congestion": 2,
+      "risk": 5,
+      "width": "narrow",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "연속 S자 헤어핀으로 유명한 사진 명소.",
+      "caution": "폭이 좁고 사진 촬영 정차 차량이 있습니다. 중앙선 침범 금지, 저속 통과.",
+      "checkpoint": {
+        "label": "지안재 전망 포인트",
+        "lat": 35.4797,
+        "lng": 127.6639,
+        "radius_m": 2000
+      },
+      "route": {
+        "start": {
+          "label": "함양읍",
+          "lat": 35.5205,
+          "lng": 127.725
+        },
+        "end": {
+          "label": "함양 마천면",
+          "lat": 35.393,
+          "lng": 127.648
+        }
+      }
+    },
+    {
+      "id": "odojae",
+      "name": "오도재",
+      "region": "경남 함양",
+      "tags": [
+        "mountain",
+        "hairpin"
+      ],
+      "length_km": 8,
+      "curve_level": 4,
+      "hairpin": 2,
+      "elevation_m": 450,
+      "surface": 3,
+      "scenery": 4,
+      "facilities": 2,
+      "congestion": 1,
+      "risk": 4,
+      "width": "narrow",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "지안재와 이어지는 고갯길. 정상부 전망대.",
+      "caution": "노폭이 좁은 구간이 있어 대형 차량 교행 시 주의.",
+      "checkpoint": {
+        "label": "오도재 정상 전망대",
+        "lat": 35.4486,
+        "lng": 127.6622,
+        "radius_m": 2000
+      },
+      "route": {
+        "start": {
+          "label": "함양읍",
+          "lat": 35.5205,
+          "lng": 127.725
+        },
+        "end": {
+          "label": "함양 마천면",
+          "lat": 35.393,
+          "lng": 127.648
+        }
+      }
+    },
+    {
+      "id": "hangyeryeong",
+      "name": "한계령",
+      "region": "강원 인제·양양",
+      "tags": [
+        "mountain",
+        "view"
+      ],
+      "length_km": 25,
+      "curve_level": 4,
+      "hairpin": 2,
+      "elevation_m": 900,
+      "surface": 4,
+      "scenery": 5,
+      "facilities": 3,
+      "congestion": 3,
+      "risk": 4,
+      "width": "medium",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "설악산 능선 경관과 긴 고갯길. 정상 휴게소.",
+      "caution": "단풍철 혼잡. 긴 내리막은 저단 엔진 브레이크 활용.",
+      "checkpoint": {
+        "label": "한계령 휴게소",
+        "lat": 38.1028,
+        "lng": 128.4271,
+        "radius_m": 1500
+      },
+      "route": {
+        "start": {
+          "label": "인제 한계리",
+          "lat": 38.07,
+          "lng": 128.26
+        },
+        "end": {
+          "label": "양양 오색",
+          "lat": 38.083,
+          "lng": 128.54
+        }
+      }
+    },
+    {
+      "id": "misiryeong-old",
+      "name": "미시령 옛길",
+      "region": "강원 인제·고성",
+      "tags": [
+        "mountain",
+        "hairpin"
+      ],
+      "length_km": 15,
+      "curve_level": 5,
+      "hairpin": 3,
+      "elevation_m": 600,
+      "surface": 2,
+      "scenery": 4,
+      "facilities": 1,
+      "congestion": 1,
+      "risk": 5,
+      "width": "narrow",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "터널 개통 이후 한적해진 옛 고갯길.",
+      "caution": "노면 상태 변동이 크고 동절기 통제가 잦습니다. 출발 전 통제 여부 확인.",
+      "checkpoint": {
+        "label": "미시령 정상",
+        "lat": 38.2205,
+        "lng": 128.4343,
+        "radius_m": 2000
+      },
+      "route": {
+        "start": {
+          "label": "인제 용대리",
+          "lat": 38.2,
+          "lng": 128.35
+        },
+        "end": {
+          "label": "속초 노학동",
+          "lat": 38.19,
+          "lng": 128.55
+        }
+      }
+    },
+    {
+      "id": "daegwallyeong-old",
+      "name": "대관령 옛길",
+      "region": "강원 평창·강릉",
+      "tags": [
+        "mountain",
+        "view"
+      ],
+      "length_km": 15,
+      "curve_level": 4,
+      "hairpin": 2,
+      "elevation_m": 650,
+      "surface": 3,
+      "scenery": 4,
+      "facilities": 3,
+      "congestion": 2,
+      "risk": 4,
+      "width": "medium",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "강릉 방향 조망이 좋은 굽잇길.",
+      "caution": "안개가 잦습니다. 시야가 짧을 때는 전조등과 감속.",
+      "checkpoint": {
+        "label": "대관령 옛길 정상",
+        "lat": 37.6869,
+        "lng": 128.7553,
+        "radius_m": 2000
+      },
+      "route": {
+        "start": {
+          "label": "평창 횡계",
+          "lat": 37.677,
+          "lng": 128.708
+        },
+        "end": {
+          "label": "강릉 성산면",
+          "lat": 37.72,
+          "lng": 128.83
+        }
+      }
+    },
+    {
+      "id": "guryongnyeong",
+      "name": "구룡령",
+      "region": "강원 홍천·양양",
+      "tags": [
+        "mountain"
+      ],
+      "length_km": 20,
+      "curve_level": 4,
+      "hairpin": 2,
+      "elevation_m": 800,
+      "surface": 3,
+      "scenery": 4,
+      "facilities": 2,
+      "congestion": 1,
+      "risk": 4,
+      "width": "medium",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "교통량이 적은 장거리 산악 고갯길.",
+      "caution": "야생동물 출현 구간. 블라인드 코너 다수.",
+      "checkpoint": {
+        "label": "구룡령 정상",
+        "lat": 37.8946,
+        "lng": 128.5419,
+        "radius_m": 2000
+      },
+      "route": {
+        "start": {
+          "label": "홍천 내면 창촌",
+          "lat": 37.8,
+          "lng": 128.45
+        },
+        "end": {
+          "label": "양양 서면 갈천",
+          "lat": 37.95,
+          "lng": 128.62
+        }
+      }
+    },
+    {
+      "id": "jeongnyeongchi",
+      "name": "정령치",
+      "region": "전북 남원 (지리산)",
+      "tags": [
+        "mountain",
+        "view"
+      ],
+      "length_km": 12,
+      "curve_level": 4,
+      "hairpin": 2,
+      "elevation_m": 800,
+      "surface": 3,
+      "scenery": 5,
+      "facilities": 2,
+      "congestion": 2,
+      "risk": 4,
+      "width": "narrow",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "지리산 능선 전망 고갯길.",
+      "caution": "동절기 통제 구간. 좁은 노폭과 관광 차량 정차.",
+      "checkpoint": {
+        "label": "정령치 휴게소",
+        "lat": 35.3585,
+        "lng": 127.5144,
+        "radius_m": 1500
+      },
+      "route": {
+        "start": {
+          "label": "남원 주천면",
+          "lat": 35.4,
+          "lng": 127.47
+        },
+        "end": {
+          "label": "남원 산내면",
+          "lat": 35.38,
+          "lng": 127.58
+        }
+      }
+    },
+    {
+      "id": "seongsamjae",
+      "name": "성삼재",
+      "region": "전남 구례 (지리산)",
+      "tags": [
+        "mountain",
+        "view"
+      ],
+      "length_km": 15,
+      "curve_level": 4,
+      "hairpin": 2,
+      "elevation_m": 900,
+      "surface": 4,
+      "scenery": 5,
+      "facilities": 3,
+      "congestion": 3,
+      "risk": 4,
+      "width": "medium",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "지리산 접근 대표 고갯길. 휴게 시설 있음.",
+      "caution": "등산객 차량·버스가 많습니다. 긴 내리막 브레이크 관리.",
+      "checkpoint": {
+        "label": "성삼재 휴게소",
+        "lat": 35.3053,
+        "lng": 127.5139,
+        "radius_m": 1500
+      },
+      "route": {
+        "start": {
+          "label": "구례 천은사",
+          "lat": 35.27,
+          "lng": 127.48
+        },
+        "end": {
+          "label": "남원 달궁",
+          "lat": 35.34,
+          "lng": 127.53
+        }
+      }
+    },
+    {
+      "id": "ihwaryeong-old",
+      "name": "이화령 옛길",
+      "region": "충북 괴산·경북 문경",
+      "tags": [
+        "mountain"
+      ],
+      "length_km": 10,
+      "curve_level": 3,
+      "hairpin": 1,
+      "elevation_m": 350,
+      "surface": 3,
+      "scenery": 3,
+      "facilities": 2,
+      "congestion": 2,
+      "risk": 3,
+      "width": "medium",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "완만한 연속 커브로 입문용 와인딩에 적합.",
+      "caution": "자전거 동호인이 많습니다. 추월 시 충분한 간격 유지.",
+      "checkpoint": {
+        "label": "이화령 정상",
+        "lat": 36.6997,
+        "lng": 128.0436,
+        "radius_m": 2000
+      },
+      "route": {
+        "start": {
+          "label": "괴산 연풍면",
+          "lat": 36.73,
+          "lng": 128.0
+        },
+        "end": {
+          "label": "문경 각서리",
+          "lat": 36.68,
+          "lng": 128.08
+        }
+      }
+    },
+    {
+      "id": "yumyeongsan",
+      "name": "유명산 일대",
+      "region": "경기 가평·양평",
+      "tags": [
+        "mountain"
+      ],
+      "length_km": 12,
+      "curve_level": 4,
+      "hairpin": 1,
+      "elevation_m": 400,
+      "surface": 3,
+      "scenery": 3,
+      "facilities": 3,
+      "congestion": 4,
+      "risk": 4,
+      "width": "medium",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "수도권에서 가까운 와인딩.",
+      "caution": "주말 이륜차·자전거 교통이 많고 사고 다발 구간이 있습니다. 평일 이용 권장.",
+      "checkpoint": {
+        "label": "유명산 고갯마루",
+        "lat": 37.5878,
+        "lng": 127.4919,
+        "radius_m": 3000
+      },
+      "route": {
+        "start": {
+          "label": "가평 설악면",
+          "lat": 37.67,
+          "lng": 127.49
+        },
+        "end": {
+          "label": "양평 옥천면",
+          "lat": 37.55,
+          "lng": 127.47
+        }
+      }
+    },
+    {
+      "id": "donghae-7",
+      "name": "동해안 국도 (삼척–울진)",
+      "region": "강원 삼척·경북 울진",
+      "tags": [
+        "coastal",
+        "view",
+        "gt"
+      ],
+      "length_km": 60,
+      "curve_level": 2,
+      "hairpin": 0,
+      "elevation_m": 100,
+      "surface": 4,
+      "scenery": 5,
+      "facilities": 4,
+      "congestion": 2,
+      "risk": 2,
+      "width": "wide",
+      "night_ok": true,
+      "winter_caution": false,
+      "highlights": "바다를 따라가는 장거리 크루징 코스.",
+      "caution": "해안 마을 구간 제한속도 변동. 구간단속 확인.",
+      "checkpoint": {
+        "label": "임원항 인근 해안도로",
+        "lat": 37.2289,
+        "lng": 129.3436,
+        "radius_m": 3000
+      },
+      "route": {
+        "start": {
+          "label": "삼척 근덕면",
+          "lat": 37.36,
+          "lng": 129.24
+        },
+        "end": {
+          "label": "울진 북면",
+          "lat": 37.07,
+          "lng": 129.38
+        }
+      }
+    },
+    {
+      "id": "mulmi-coast",
+      "name": "남해 물미해안도로",
+      "region": "경남 남해",
+      "tags": [
+        "coastal",
+        "view"
+      ],
+      "length_km": 15,
+      "curve_level": 3,
+      "hairpin": 0,
+      "elevation_m": 120,
+      "surface": 3,
+      "scenery": 5,
+      "facilities": 2,
+      "congestion": 2,
+      "risk": 3,
+      "width": "narrow",
+      "night_ok": false,
+      "winter_caution": false,
+      "highlights": "해안 절벽을 따라가는 경관 도로.",
+      "caution": "전망 포인트 정차 차량. 해풍과 노면 모래 주의.",
+      "checkpoint": {
+        "label": "물미해안 전망대",
+        "lat": 34.8095,
+        "lng": 128.0316,
+        "radius_m": 3000
+      },
+      "route": {
+        "start": {
+          "label": "남해 미조항",
+          "lat": 34.71,
+          "lng": 128.05
+        },
+        "end": {
+          "label": "남해 물건리",
+          "lat": 34.79,
+          "lng": 127.99
+        }
+      }
+    },
+    {
+      "id": "dalmaji",
+      "name": "해운대 달맞이길",
+      "region": "부산 해운대",
+      "tags": [
+        "urban",
+        "coastal",
+        "night"
+      ],
+      "length_km": 5,
+      "curve_level": 2,
+      "hairpin": 0,
+      "elevation_m": 80,
+      "surface": 4,
+      "scenery": 4,
+      "facilities": 5,
+      "congestion": 5,
+      "risk": 3,
+      "width": "medium",
+      "night_ok": true,
+      "winter_caution": false,
+      "highlights": "도심 해안 야경 드라이브. 카페·편의 시설 풍부.",
+      "caution": "상시 혼잡. 보행자·주정차 차량 주의.",
+      "checkpoint": {
+        "label": "달맞이길 해월정",
+        "lat": 35.1576,
+        "lng": 129.1797,
+        "radius_m": 1000
+      },
+      "route": {
+        "start": {
+          "label": "해운대해수욕장",
+          "lat": 35.1587,
+          "lng": 129.1604
+        },
+        "end": {
+          "label": "송정해수욕장",
+          "lat": 35.1786,
+          "lng": 129.1999
+        }
+      }
+    },
+    {
+      "id": "jeju-1100",
+      "name": "제주 1100도로",
+      "region": "제주",
+      "tags": [
+        "mountain",
+        "view",
+        "gt"
+      ],
+      "length_km": 30,
+      "curve_level": 3,
+      "hairpin": 0,
+      "elevation_m": 1000,
+      "surface": 4,
+      "scenery": 5,
+      "facilities": 3,
+      "congestion": 3,
+      "risk": 3,
+      "width": "medium",
+      "night_ok": false,
+      "winter_caution": true,
+      "highlights": "한라산 중턱을 넘는 고지대 도로. 1100고지 휴게소.",
+      "caution": "짙은 안개와 노루 출현. 겨울 결빙·체인 통제.",
+      "checkpoint": {
+        "label": "1100고지 휴게소",
+        "lat": 33.3573,
+        "lng": 126.4626,
+        "radius_m": 1000
+      },
+      "route": {
+        "start": {
+          "label": "제주시 노형동",
+          "lat": 33.48,
+          "lng": 126.48
+        },
+        "end": {
+          "label": "서귀포 중문",
+          "lat": 33.25,
+          "lng": 126.41
+        }
+      }
+    }
+  ]
+}

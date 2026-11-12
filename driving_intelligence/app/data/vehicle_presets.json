@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "note": "제네시스 라인업 입력 편의를 위한 샘플 제원입니다. 연식·트림·시장에 따라 다르며, 특히 공차중량은 추정치입니다. 실제 등록 시 제네시스 공식 제원으로 확인·수정하세요. GV60 마그마 출력·토크는 부스트 미사용 기준(448 kW · 740 Nm)입니다."
+  },
+  "presets": [
+    {"key": "gv60-magma", "maker": "Genesis", "model": "GV60 Magma", "engine": "듀얼 모터 (84 kWh)",
+     "power_ps": 609, "torque_nm": 740, "drivetrain": "AWD", "transmission": "EV", "weight_kg": 2250, "size_class": "compact"},
+    {"key": "g70-33t-awd", "maker": "Genesis", "model": "G70 3.3T AWD", "engine": "V6 3.3L 트윈터보",
+     "power_ps": 370, "torque_nm": 510, "drivetrain": "AWD", "transmission": "AT", "weight_kg": 1820, "size_class": "mid"},
+    {"key": "g70-25t", "maker": "Genesis", "model": "G70 2.5T", "engine": "직렬 4기통 2.5L 터보",
+     "power_ps": 304, "torque_nm": 422, "drivetrain": "FR", "transmission": "AT", "weight_kg": 1680, "size_class": "mid"},
+    {"key": "g80-35t-awd", "maker": "Genesis", "model": "G80 3.5T AWD", "engine": "V6 3.5L 트윈터보",
+     "power_ps": 380, "torque_nm": 530, "drivetrain": "AWD", "transmission": "AT", "weight_kg": 1970, "size_class": "large"},
+    {"key": "g80-25t-awd", "maker": "Genesis", "model": "G80 2.5T AWD", "engine": "직렬 4기통 2.5L 터보",
+     "power_ps": 304, "torque_nm": 422, "drivetrain": "AWD", "transmission": "AT", "weight_kg": 1890, "size_class": "large"},
+    {"key": "g90-35t-awd", "maker": "Genesis", "model": "G90 3.5T AWD", "engine": "V6 3.5L 트윈터보",
+     "power_ps": 380, "torque_nm": 530, "drivetrain": "AWD", "transmission": "AT", "weight_kg": 2150, "size_class": "large"},
+    {"key": "gv70-35t-awd", "maker": "Genesis", "model": "GV70 3.5T AWD", "engine": "V6 3.5L 트윈터보",
+     "power_ps": 380, "torque_nm": 530, "drivetrain": "AWD", "transmission": "AT", "weight_kg": 1980, "size_class": "mid"},
+    {"key": "gv80-35t-awd", "maker": "Genesis", "model": "GV80 3.5T AWD", "engine": "V6 3.5L 트윈터보",
+     "power_ps": 380, "torque_nm": 530, "drivetrain": "AWD", "transmission": "AT", "weight_kg": 2200, "size_class": "large"}
+  ]
+}

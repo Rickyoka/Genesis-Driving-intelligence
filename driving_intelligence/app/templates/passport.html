@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, ring %}
+{% block title %}드라이빙 패스포트{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="eyebrow">Driving Passport</p>
+  <h1>디지털 운전 성장 기록</h1>
+  <p class="lead">주행 분석 추이, 교육 이수 기록, 앱 배지를 한곳에서 관리합니다. <b>공식 교육 수료증과 앱 내부 배지는 구분해서 표시합니다.</b></p>
+</header>
+
+<section class="card passport-stamps">
+  <div>
+    <p class="label">드라이빙 스탬프</p>
+    <p class="kpi__v">{{ stamp_count }}<span class="kpi__sub"> / {{ course_total }}</span></p>
+  </div>
+  <div>
+    <p class="label">Genesis 포인트</p>
+    <p class="kpi__v accent">{{ '{:,}'.format(points) }}<span class="kpi__sub">P</span></p>
+  </div>
+  <a class="btn btn--ghost btn--sm" href="{{ url_for('main.stamps_page') }}">스탬프 북 열기</a>
+</section>
+
+<section class="card">
+  <h2>안정성 지표 추이</h2>
+  {% if reports %}
+    <div class="timeline" role="list">
+      {% for r in reports %}
+        <a class="timeline__item" role="listitem" href="{{ url_for('main.report', rid=r.id) }}">
+          <div class="timeline__bar"><span data-h="{{ r.overall }}"></span></div>
+          <b>{{ r.overall }}</b><span class="muted small">#{{ r.id }}</span>
+        </a>
+      {% endfor %}
+    </div>
+    {% if reports|length >= 2 %}
+      {% set diff = reports[-1].overall - reports[0].overall %}
+      <p class="note">첫 분석 대비 <b class="{{ 'pos' if diff > 0 else ('neg' if diff < 0 else '') }}">{{ '%+d'|format(diff) }}점</b> ({{ reports|length }}회 분석)</p>
+    {% endif %}
+  {% else %}
+    <p class="muted">주행 분석 기록이 없습니다.</p>
+  {% endif %}
+</section>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>교육 이수 기록</h2>
+    {% if education %}
+      <ul class="edu">
+        {% for e in education %}
+          {% set p = programs_by_id.get(e.program_id) %}
+          <li class="edu__item">
+            <div>
+              <b>{{ p.title if p else e.program_id }}</b>
+              <p class="muted small">{{ e.school }} · {{ e.completed_on }}</p>
+              {% if e.verified %}<span class="chip chip--ok">공식 수료 · 스쿨 확인</span>{% else %}<span class="chip chip--warn">자기 신고 · 미검증</span>{% endif %}
+            </div>
+            <form method="post" action="{{ url_for('main.passport_delete_education', eid=e.id) }}" data-confirm="이 교육 기록을 삭제할까요?">{{ csrf() }}
+              <button class="btn btn--danger btn--sm" type="submit">삭제</button></form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">등록된 교육 기록이 없습니다.</p>
+    {% endif %}
+
+    <h3 class="subhead">이수 기록 추가</h3>
+    <form method="post" action="{{ url_for('main.passport_add_education') }}" class="form">
+      {{ csrf() }}
+      <label class="field field--full"><span>교육 프로그램</span>
+        <select name="program_id" required>{% for p in programs %}<option value="{{ p.id }}">[{{ p.category }}] {{ p.title }}</option>{% endfor %}</select></label>
+      <label class="field"><span>교육 기관</span><input name="school" maxlength="60" required placeholder="예: OO 드라이빙 스쿨"></label>
+      <label class="field"><span>이수일</span><input name="completed_on" type="date" max="{{ today }}" min="1990-01-01" required></label>
+      <div class="field field--full"><button class="btn btn--primary" type="submit">기록 추가</button>
+        <p class="muted small">직접 입력한 기록은 '미검증'으로 표시됩니다. 스쿨 수료 API가 연동되면 공식 수료로 확인됩니다.</p></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>앱 배지 <span class="chip">공식 자격 아님</span></h2>
+    <ul class="badges">
+      {% for b in badges %}
+        <li class="badge{% if b.earned %} is-earned{% endif %}">
+          <span class="badge__icon" aria-hidden="true">{{ '★' if b.earned else '☆' }}</span>
+          <div><b>{{ b.title }}</b><p class="muted small">{{ b.desc }}</p></div>
+          <span class="small {{ 'pos' if b.earned else 'muted' }}">{{ '획득' if b.earned else '미획득' }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+    <p class="note">배지는 앱 이용 동기를 위한 표시이며 운전 실력·안전성을 인증하지 않습니다.</p>
+  </section>
+</div>
+{% endblock %}

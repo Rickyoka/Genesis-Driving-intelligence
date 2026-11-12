@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring, vehicle_line %}
+{% block title %}홈{% endblock %}
+{% block content %}
+<div class="cosmos-gate" data-cosmos-anchor aria-hidden="true"></div>
+<section class="hero">
+  <div class="hero__copy">
+    <p class="eyebrow">Genesis 전용 드라이빙 내비게이션 · 코칭 · 교육 · 고성능 데이터</p>
+    <h1>Know your <b>Genesis.</b><br><span class="accent">Master your drive.</span></h1>
+    <p class="lead">내 제네시스의 성능과 도로, 운전 습관을 학습해 드라이빙에 최적화된 경로를 HUD로 안내하고, 부족한 기술은 교육으로 연결합니다. 동의한 주행 데이터는 익명으로 모여 차세대 고성능 모델 개발의 근거가 됩니다.</p>
+    <div class="hero__cta">
+      {% if vehicle %}
+        <a class="btn btn--primary" href="{{ url_for('main.courses') }}">학습형 코스 추천</a>
+        <a class="btn btn--magma" href="{{ url_for('main.drive_page') }}">내비 연동 HUD 주행</a>
+      {% else %}
+        <a class="btn btn--primary" href="{{ url_for('main.garage') }}">내 제네시스 등록하기</a>
+        <a class="btn btn--ghost" href="{{ url_for('main.courses') }}">코스 둘러보기</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="hero__panel card showroom">
+    <div class="stage{{ ' stage--photo' if vehicle and vehicle.photo else '' }}">
+      <img class="stage__car" src="{{ vehicle_image_url(vehicle) }}" alt="{{ (vehicle.nickname ~ ' 사진') if vehicle and vehicle.photo else '오리지널 컨셉 GT 렌더링' }}">
+      {% if not (vehicle and vehicle.photo) %}<span class="stage__tag">오리지널 컨셉 렌더링 · 실존 차량 아님</span>{% endif %}
+    </div>
+    <p class="label">현재 차량</p>
+    {% if vehicle %}
+      <p class="hero__car">{{ vehicle.nickname }}</p>
+      <p class="muted small">{{ vehicle_line(vehicle) }}</p>
+      <div class="stat-row">
+        <div><span class="stat">{{ '%.0f'|format(vehicle.power_ps / (vehicle.weight_kg / 1000)) }}</span><span class="stat__unit">PS/t</span><p class="label">출력 대비 중량</p></div>
+        <div><span class="stat">{{ 'EV' if vehicle.transmission == 'EV' else vehicle.drivetrain }}</span><p class="label">{{ '전동화' if vehicle.transmission == 'EV' else '구동 방식' }}</p></div>
+      </div>
+      <a class="link" href="{{ url_for('main.garage') }}">{{ '차고 관리 →' if vehicle.photo else '내 차 사진 배치하기 →' }}</a>
+    {% else %}
+      <p class="muted">아직 등록한 차량이 없습니다. GV60 Magma, G70, G80 등 제네시스 라인업 예시 제원을 불러와 바로 시작할 수 있습니다.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="kpi card"><p class="label">등록 차량</p><p class="kpi__v">{{ counts.vehicles }}</p></div>
+  <a class="kpi card" href="{{ url_for('main.stamps_page') }}"><p class="label">스탬프</p><p class="kpi__v">{{ counts.stamps }}<span class="kpi__sub"> / {{ course_total }}</span></p></a>
+  <a class="kpi card" href="{{ url_for('main.stamps_page') }}"><p class="label">Genesis 포인트</p><p class="kpi__v accent">{{ '{:,}'.format(points) }}<span class="kpi__sub">P</span></p></a>
+  <div class="kpi card"><p class="label">주행 리포트</p><p class="kpi__v">{{ counts.reports }}</p></div>
+</section>
+
+<section class="grid-2">
+  <div class="card">
+    <div class="card__head">
+      <h2>오늘의 학습형 추천 · Sport</h2>
+      <a class="link" href="{{ url_for('main.courses', mode='sport') }}">전체 보기 →</a>
+    </div>
+    <ol class="toplist">
+      {% for s in top %}
+        <li>
+          <a href="{{ url_for('main.course_detail', course_id=s.course.id, mode='sport') }}">
+            {{ ring(s.score, 'sm', s.course.name) }}
+            <div><b>{{ s.course.name }}</b><p class="muted small">{{ s.course.region }} · 약 {{ s.course.length_km|round|int }} km · {{ s.grade }}</p></div>
+          </a>
+        </li>
+      {% endfor %}
+    </ol>
+    <p class="note">{{ '현재 차량 + 주행 기록 학습 반영' if vehicle else '차량 미등록: 도로 특성만으로 계산' }} · 맑음 · 주간</p>
+  </div>
+  <div class="card">
+    <div class="card__head">
+      <h2>최근 주행 분석</h2>
+      <a class="link" href="{{ url_for('main.analyze_page') }}">분석 →</a>
+    </div>
+    {% if latest %}
+      <div class="latest">
+        {{ ring(latest.overall, 'lg', '종합 안정성') }}
+        <div>
+          <p class="label">종합 안정성 지표</p>
+          <p class="muted small">{{ latest.created_at }} · {{ '%.1f'|format(latest.distance_km) }} km</p>
+          <a class="btn btn--ghost btn--sm" href="{{ url_for('main.report', rid=latest.id) }}">리포트 열기</a>
+        </div>
+      </div>
+    {% else %}
+      <p class="muted">아직 분석한 주행이 없습니다. 웨어러블 심박이 포함된 샘플 데이터로 바로 체험할 수 있습니다.</p>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('main.analyze_page') }}">샘플로 분석해보기</a>
+    {% endif %}
+  </div>
+</section>
+
+<section class="pillars">
+  {% for t, d, ep in [('Learned Navigation','주행 기록을 학습한 코스 추천','main.courses'),('HUD 내비','헤드업 디스플레이 안내 시연','main.hud'),('Driving Coach','주행 패턴·웨어러블 분석','main.analyze_page'),('Driving Academy','약점 맞춤 교육 연결','main.academy_page'),('Magma Data Lab','고성능 개발 데이터 축적','main.datalab_page'),('Stamp Tour','명소 자동 스탬프·포인트','main.stamps_page')] %}
+    <a class="pillar" href="{{ url_for(ep) }}"><p class="pillar__t">{{ t }}</p><p class="muted small">{{ d }}</p></a>
+  {% endfor %}
+</section>
+{% endblock %}

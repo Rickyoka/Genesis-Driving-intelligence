@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}내비 연동 HUD{% endblock %}
+{# full-screen road renderer here: no cosmos background #}
+{% block cosmos %}{% endblock %}
+{% block cosmos_js %}{% endblock %}
+{% block head %}
+  <script src="{{ url_for('static', filename='js/scene.js') }}?v={{ APP_VERSION }}" defer></script>
+  <script src="{{ url_for('static', filename='js/drive.js') }}?v={{ APP_VERSION }}" defer></script>
+{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="eyebrow">Navigation-linked HUD</p>
+  <h1>내비 연동 HUD · 감속·가속 가이드</h1>
+  <p class="lead">내비게이션이 계산한 경로의 코너 정보를 HUD가 받아, 지금이 <b class="c-decel">감속</b>할 때인지, 코너를 <b>일정하게</b> 지날 때인지, 출구에서 <b class="c-accel">가속</b>할 때인지를 앞 유리에 실시간으로 띄웁니다.</p>
+</header>
+
+<nav class="mode-tabs" aria-label="주행 모드">
+  <a class="mode-tab{{ ' is-on' if mode == 'road' }}" href="{{ url_for('main.drive_page', mode='road', course=course.id) }}">
+    <b>공도 · 리듬 모드</b><span>연속 코너의 흐름을 즐기는 안전 가이드 · 제한속도 이내</span></a>
+  <a class="mode-tab mode-tab--circuit{{ ' is-on' if mode == 'circuit' }}" href="{{ url_for('main.drive_page', mode='circuit') }}">
+    <b>서킷 모드</b><span>브레이킹 포인트·턴인·에이펙스·풀 스로틀 · 폐쇄 코스 전용</span></a>
+</nav>
+
+<div class="drive" data-drive>
+  <div class="route__bar">
+    {% if mode == 'road' %}
+      <form method="get" action="{{ url_for('main.drive_page') }}" data-autosubmit class="inline-form">
+        <input type="hidden" name="mode" value="road">
+        <label class="field field--inline"><span>코스</span>
+          <select name="course">{% for c in courses %}<option value="{{ c.id }}" {{ 'selected' if c.id == course.id }}>{{ c.name }} · {{ c.region }}</option>{% endfor %}</select></label>
+      </form>
+    {% else %}
+      <span class="seg" role="group" aria-label="타이어">
+        {% for key, t in tyres.items() %}<button type="button" class="seg__btn" data-tyre="{{ key }}" aria-pressed="{{ 'true' if key == 'street' else 'false' }}">{{ t[0] }} ({{ t[1] }} g)</button>{% endfor %}
+      </span>
+    {% endif %}
+    <span class="seg" role="group" aria-label="재생 배속">
+      {% for ts in [1, 2, 4, 8] %}<button type="button" class="seg__btn" data-ts="{{ ts }}" aria-pressed="{{ 'true' if (mode == 'road' and ts == 4) or (mode == 'circuit' and ts == 2) else 'false' }}">×{{ ts }}</button>{% endfor %}
+    </span>
+    <span class="muted small">차량: {{ vehicle.nickname if vehicle else '미등록 (기본 차량)' }}</span>
+    <span class="spacer"></span>
+    <button type="button" class="btn btn--ghost btn--sm" data-restart>처음부터</button>
+    <button type="button" class="btn btn--magma btn--sm" data-play{{ ' disabled' if mode == 'circuit' }}>재생</button>
+  </div>
+
+  <div class="drive__grid">
+    <section class="windshield drive__ws{{ ' is-circuit' if mode == 'circuit' }}" data-ws>
+      <canvas class="scene-canvas" data-scene aria-hidden="true"></canvas>
+      <span class="hud-badge" data-badge>{{ '서킷 모드 · 가상 데모 서킷' if mode == 'circuit' else '공도 리듬 모드 · ' ~ course.name }}</span>
+      <div class="rhythm-banner" data-rhythm hidden></div>
+      <div class="board" data-board hidden></div>
+      <div class="dhud" data-dhud aria-live="polite">
+        <div class="dhud__top"><div class="dhud__prog"><span data-prog></span></div><span class="dhud__meta" data-meta>–</span></div>
+        <div class="dhud__spd"><b data-spd>0</b><small>km/h</small></div>
+        <div class="dhud__cue">
+          <div class="dhud__phase" data-phase>준비</div>
+          <div class="dhud__sub" data-sub>재생을 누르면 시작합니다</div>
+        </div>
+        <div class="dhud__right">
+          <svg class="dhud__arrow" data-arrow viewBox="0 0 60 60" aria-hidden="true"><path d="M18 52 V30 Q18 16 32 16 H46 M38 8 L46 16 L38 24"/></svg>
+          <div class="dhud__lim" data-lim>{{ '' if mode == 'circuit' else default_limit }}</div>
+        </div>
+      </div>
+      {% if mode == 'circuit' %}
+        <div class="gate" data-gate>
+          <div class="gate__box">
+            <p class="eyebrow">Closed course only</p>
+            <h2>서킷 모드는 폐쇄된 서킷 전용입니다</h2>
+            <p class="muted small">브레이킹 포인트·턴인·에이펙스·풀 스로틀 안내는 접지 한계에 가까운 주행을 전제로 합니다. 공도에서는 절대 사용하지 마세요. 실서비스에서는 등록된 서킷 지오펜스 안에서만 자동으로 열리며, 트랙데이·교육 세션의 안전 규정과 강사 지시가 항상 우선합니다.</p>
+            <label class="check"><input type="checkbox" data-gate-ok><span>폐쇄 서킷(트랙데이·교육 세션)에서만 사용합니다</span></label>
+          </div>
+        </div>
+      {% endif %}
+    </section>
+
+    <aside class="card drive__side">
+      <svg class="minimap" data-minimap viewBox="0 0 300 300" role="img" aria-label="코스 미니맵"></svg>
+      <div class="drive__stats" data-stats></div>
+      <h2 class="subhead">다음 안내</h2>
+      <ol class="cues" data-cues></ol>
+    </aside>
+  </div>
+
+  <section class="card">
+    <div class="card__head"><h2>{{ '랩 속도 프로파일' if mode == 'circuit' else '권고 속도 프로파일 · 코너 단계' }}</h2><span class="muted small" data-src></span></div>
+    <figure class="profile m0"><svg data-profile viewBox="0 0 1000 220" preserveAspectRatio="none" role="img" aria-label="거리별 속도와 코너 단계"></svg>
+      <figcaption class="trace__legend">
+        <span><i class="lg lg--line"></i> {{ '시뮬레이션 랩 속도' if mode == 'circuit' else '권고 속도' }}</span>
+        <span><i class="lg lg-decel"></i> {{ '브레이킹' if mode == 'circuit' else '감속' }}</span>
+        <span><i class="lg lg-corner"></i> 코너</span>
+        <span><i class="lg lg-accel"></i> {{ '스로틀' if mode == 'circuit' else '가속' }}</span>
+        {% if mode == 'road' %}<span><i class="lg lg-rhythm"></i> 리듬 구간</span>{% endif %}
+      </figcaption></figure>
+  </section>
+
+  <div class="grid-2">
+    {% if mode == 'road' %}
+    <section class="card">
+      <h2>리듬 모드: 재미의 기준은 '흐름'</h2>
+      <ol class="guide guide--muted small">
+        <li><b>감속 준비 → 감속</b>: 코너 전 직선에서 감속을 끝냅니다. HUD가 감속 시작까지 남은 거리와 목표 속도를 보여줍니다.</li>
+        <li><b>코너 · 일정한 속도</b>: 코너 안에서는 브레이크도 가속도 하지 않고 같은 속도로, 차로 안에서 시선은 출구로 둡니다.</li>
+        <li><b>출구 · 부드럽게 가속</b>: 코너가 풀리는 지점부터 제한속도까지 천천히 가속합니다.</li>
+        <li><b>리듬 구간</b>: 짧은 간격으로 코너가 3개 이상 이어지는 구간입니다. 이 흐름을 끊김 없이 이어 갈 때 와인딩이 가장 즐겁습니다.</li>
+      </ol>
+      <p class="note">권고 속도는 승차감 기준(횡가속 0.2 g)의 상한이며 제한속도를 넘지 않습니다. 이 모드는 더 빠른 주행을 안내하지 않습니다.</p>
+    </section>
+    {% else %}
+    <section class="card">
+      <h2>서킷 모드 안내 단계</h2>
+      <ol class="guide guide--muted small">
+        <li><b class="c-stop">150 · 100 · 50</b>: 브레이킹 포인트까지 남은 거리 보드</li>
+        <li><b class="c-stop">BRAKE</b>: 직선에서 강하게 제동, 진입 속도까지</li>
+        <li><b class="c-decel">TURN IN</b>: 스티어링 시작</li>
+        <li><b>APEX</b>: 코너 최저 속도 지점, 클리핑 포인트</li>
+        <li><b class="c-accel">THROTTLE → FULL</b>: 스티어링을 풀면서 가속, 직선에서 풀 스로틀</li>
+      </ol>
+      <p class="note">차량 출력·중량과 타이어 접지(0.95 / 1.15 g)로 계산한 이상적 랩입니다. 실제 코칭은 텔레메트리와 전문 강사 검증 데이터로 보정해야 합니다(Phase 4). 데모 서킷은 가상 코스입니다.</p>
+    </section>
+    {% endif %}
+    <section class="card">
+      <h2>내비 ↔ HUD 연동 구조</h2>
+      <ul class="guide guide--muted small">
+        <li><b>내비게이션</b>: 경로 API → 10 m 간격 곡률 → 코너별 감속 시작·턴인·정점·가속 지점 계산</li>
+        <li><b>HUD</b>: 현재 위치 기준으로 다음 코너의 단계·남은 거리·목표 속도를 표시, 단계별 색 변화</li>
+        <li><b>차량 데이터</b>: 실제 속도와 권고 속도의 차이, 감속 시작 시점을 주행 분석·학습 루프로 환류</li>
+        <li><b>모드 분리</b>: 공도는 리듬 모드만, 서킷 모드는 폐쇄 코스 확인 후에만 활성화</li>
+      </ul>
+      <p class="note"><a class="link" href="{{ url_for('main.route_page', course=course.id) }}">지도 경로 가이드</a> · <a class="link" href="{{ url_for('main.hud', course=course.id) }}">구간 HUD 시연</a></p>
+    </section>
+  </div>
+</div>
+<script type="application/json" id="drive-config">{{ cfg|tojson }}</script>
+{% endblock %}

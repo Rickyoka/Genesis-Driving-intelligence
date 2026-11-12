@@ -1,0 +1,34 @@
+{% macro ring(score, size='md', label=None) -%}
+  <div class="ring ring--{{ size }}{% if score is none %} ring--na{% elif score >= 75 %} ring--hi{% elif score >= 60 %} ring--mid{% else %} ring--lo{% endif %}"
+       data-score="{{ score if score is not none else 0 }}" role="img"
+       aria-label="{{ label or '점수' }} {{ score if score is not none else '평가 없음' }}">
+    <span class="ring__value">{{ score if score is not none else '–' }}</span>
+  </div>
+{%- endmacro %}
+
+{% macro bar(value, tone='') -%}
+  <div class="bar {{ tone }}"><span data-w="{{ value if value is not none else 0 }}"></span></div>
+{%- endmacro %}
+
+{% macro vehicle_line(v) -%}
+  {{ v.maker }} {{ v.model }} · {{ v.power_ps }}PS · {{ v.torque_nm }}Nm · {{ v.drivetrain }} · {{ v.transmission }} · {{ '{:,}'.format(v.weight_kg) }}kg
+{%- endmacro %}
+
+{% macro csrf() -%}
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro %}
+
+{% macro stamp(course, row=None, idx=0) -%}
+  {# Circular rubber-stamp style badge. Collected stamps are copper and slightly rotated. #}
+  <div class="stamp{% if row %} is-on rot-{{ idx % 4 }}{% endif %}">
+    <svg viewBox="0 0 120 120" role="img" aria-label="{{ course.name }} 스탬프 {{ '획득' if row else '미획득' }}">
+      <circle class="stamp__ring" cx="60" cy="60" r="54"/>
+      <circle class="stamp__ring stamp__ring--in" cx="60" cy="60" r="46"/>
+      <text class="stamp__top" x="60" y="34">{{ course.region.split(' ')[0] }}</text>
+      {% set nm = course.name.split(' (')[0] %}
+      <text class="stamp__name" x="60" y="62"{% if nm|length > 4 %} textLength="{{ 72 if nm|length > 6 else 66 }}" lengthAdjust="spacingAndGlyphs"{% endif %}>{{ nm }}</text>
+      <text class="stamp__date" x="60" y="82">{{ row.first_at[:10].replace('-', '.') if row else '— · —' }}</text>
+      {% if row and row.source == 'demo' %}<text class="stamp__demo" x="60" y="98">DEMO</text>{% endif %}
+    </svg>
+  </div>
+{%- endmacro %}

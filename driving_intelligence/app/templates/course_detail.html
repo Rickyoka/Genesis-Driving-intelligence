@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ring, bar, csrf %}
+{% block title %}{{ course.name }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('main.courses', mode=cond.mode, weather=cond.weather, night='1' if cond.night else none) }}">← 코스 목록</a>
+
+<header class="detail-head">
+  <div>
+    <p class="eyebrow">{{ course.region }}</p>
+    <h1>{{ course.name }}</h1>
+    <p class="lead">{{ course.highlights }}</p>
+    <div class="tags">{% for t in course.tags %}<span class="tag">{{ TAG_LABELS.get(t, t) }}</span>{% endfor %}</div>
+  </div>
+  <div class="detail-head__actions">
+    <form method="post" action="{{ url_for('main.course_favorite', course_id=course.id) }}">{{ csrf() }}
+      <input type="hidden" name="back" value="detail">
+      <button class="btn {{ 'btn--primary' if is_fav else 'btn--ghost' }}" type="submit">{{ '저장됨 ✓' if is_fav else '코스 저장' }}</button>
+    </form>
+    <a class="btn btn--primary" href="{{ url_for('main.route_page', course=course.id) }}">경로 가이드</a>
+    <a class="btn btn--magma" href="{{ url_for('main.hud', course=course.id) }}">HUD 안내 시연</a>
+    <a class="btn btn--ghost" href="{{ map_url }}" target="_blank" rel="noopener noreferrer">카카오맵에서 보기 ↗</a>
+  </div>
+</header>
+
+<section class="mode-scores">
+  {% for key, m in modes.items() %}
+    {% set s = by_mode[key] %}
+    <a class="mode-card card{% if key == cond.mode %} is-active{% endif %}" href="{{ url_for('main.course_detail', course_id=course.id, mode=key, weather=cond.weather, night='1' if cond.night else none) }}">
+      {{ ring(s.score if not s.excluded_reason else none, 'md', m.label) }}
+      <div><p class="mode-card__t">{{ m.label }}</p><p class="muted small">{{ s.grade }}</p></div>
+    </a>
+  {% endfor %}
+</section>
+<p class="note">조건: {{ weathers[cond.weather] }} · {{ '야간' if cond.night else '주간' }} · {{ vehicle.nickname if vehicle else '차량 미등록' }}</p>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>{{ modes[cond.mode].label }} 모드 점수 구성</h2>
+    {% if current.excluded_reason %}<p class="alert">{{ current.excluded_reason }}</p>{% endif %}
+    {% if personal.active %}<p class="note mt0">학습 반영: {{ personal.reasons|join(' / ') }}</p>{% endif %}
+    <ul class="breakdown">
+      {% for key, label in component_labels.items() %}
+        <li>
+          <div class="breakdown__row"><span>{{ label }}</span><span class="muted small">가중치 {{ (weights[key] * 100)|round|int }}% · {{ current.components[key] }}</span></div>
+          {{ bar(current.components[key]) }}
+        </li>
+      {% endfor %}
+    </ul>
+    <div class="adjust">
+      <div class="adjust__row"><span>기본 점수</span><b>{{ current.base_score }}</b></div>
+      {% for label, delta in current.adjustments %}
+        <div class="adjust__row"><span>{{ label }}</span><b class="{{ 'pos' if delta > 0 else 'neg' }}">{{ '%+d'|format(delta) }}</b></div>
+      {% endfor %}
+      <div class="adjust__row adjust__total"><span>최종 Fun Driving Score</span><b>{{ current.score }}</b></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>도로 데이터</h2>
+    <dl class="specs specs--wide">
+      <div><dt>거리</dt><dd>약 {{ course.length_km|round|int }} km</dd></div>
+      <div><dt>곡률 등급</dt><dd>{{ course.curve_level }}/5</dd></div>
+      <div><dt>헤어핀</dt><dd>{{ ['없음','적음','보통','많음'][course.hairpin] }}</dd></div>
+      <div><dt>고저차</dt><dd>약 {{ course.elevation_m }} m</dd></div>
+      <div><dt>노면 품질</dt><dd>{{ course.surface }}/5</dd></div>
+      <div><dt>도로 폭</dt><dd>{{ WIDTH_LABELS[course.width] }}</dd></div>
+      <div><dt>경관</dt><dd>{{ course.scenery }}/5</dd></div>
+      <div><dt>휴게 시설</dt><dd>{{ course.facilities }}/5</dd></div>
+      <div><dt>혼잡도</dt><dd>{{ course.congestion }}/5</dd></div>
+      <div><dt>위험도</dt><dd class="{{ 'warn' if course.risk >= 4 }}">{{ course.risk }}/5</dd></div>
+      <div><dt>야간 주행</dt><dd>{{ '적합' if course.night_ok else '비추천' }}</dd></div>
+      <div><dt>동절기</dt><dd class="{{ 'warn' if course.winter_caution }}">{{ '결빙·통제 주의' if course.winter_caution else '일반' }}</dd></div>
+    </dl>
+    <p class="alert alert--soft small"><b>주의</b> {{ course.caution }}</p>
+  </section>
+</div>
+
+{% if course.checkpoint %}
+<section class="card checkpoint-card">
+  <div>
+    <p class="label">스탬프 체크포인트</p>
+    <h2 class="m0">📍 {{ course.checkpoint.label }}</h2>
+    <p class="muted small m0">반경 {{ '{:,}'.format(course.checkpoint.radius_m) }} m 안에 도착하면 자동 적립 · 근사 좌표 (현장 검증 필요)</p>
+  </div>
+  <div class="checkpoint-card__act">
+    {% if stamp %}
+      <span class="chip chip--ok">스탬프 보유 · {{ stamp.first_at[:10] }} · {{ stamp.visits }}회 방문</span>
+    {% else %}
+      <span class="chip chip--accent">미수집 · +{{ stamp_points }}P</span>
+      {% if demo_mode %}
+        <form method="post" action="{{ url_for('main.stamps_demo', course_id=course.id) }}">{{ csrf() }}
+          <input type="hidden" name="back" value="detail">
+          <button class="btn btn--ghost btn--sm" type="submit">도착 시뮬레이션</button></form>
+      {% endif %}
+    {% endif %}
+    <a class="link" href="{{ url_for('main.stamps_page') }}">스탬프 투어 →</a>
+  </div>
+</section>
+{% endif %}
+
+<div class="grid-2">
+  <section class="card">
+    <h2>차량 맞춤 주행 가이드 <span class="chip">공도 모드</span></h2>
+    {% if current.notes %}
+      <ul class="guide">{% for n in current.notes %}<li>{{ n }}</li>{% endfor %}</ul>
+    {% else %}
+      <p class="muted">{{ '이 조건에서 추가로 안내할 차량별 주의 사항이 없습니다.' if vehicle else '차량을 등록하면 구동 방식·변속기·중량에 맞춘 안내가 표시됩니다.' }}</p>
+    {% endif %}
+    <h3 class="subhead">공도 기본 원칙</h3>
+    <ul class="guide guide--muted">{% for g in guide %}<li>{{ g }}</li>{% endfor %}</ul>
+  </section>
+  <section class="card locked">
+    <p class="chip chip--accent">Phase 4 · Track</p>
+    <h2>서킷 전문 모드</h2>
+    <p class="muted">제동 지점, 코너 진입 속도, 주행 라인 코칭은 <b>폐쇄된 서킷과 교육장</b>에서만 제공합니다. OBD-II 텔레메트리와 전문 강사의 검증 데이터를 기반으로 개발할 예정입니다.</p>
+    <a class="btn btn--ghost btn--sm" href="{{ url_for('main.academy_page') }}">서킷 입문 교육 보기</a>
+  </section>
+</div>
+<p class="note">{{ course_note }}</p>
+{% endblock %}

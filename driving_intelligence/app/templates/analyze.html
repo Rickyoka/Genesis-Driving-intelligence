@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, ring %}
+{% block title %}주행 분석{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="eyebrow">Driving Coach · Driver DNA</p>
+  <h1>AI 주행 분석</h1>
+  <p class="lead">GPS·스마트폰 센서·OBD-II에서 내보낸 주행 로그(CSV)로 가속·제동·조향·코너링 안정성을 평가합니다. 프로토타입은 <b>규칙 기반</b>으로 동작하며, 데이터가 쌓이면 AI 모델로 고도화합니다.</p>
+</header>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>주행 로그 업로드</h2>
+    <form method="post" action="{{ url_for('main.analyze_submit') }}" enctype="multipart/form-data" class="form" data-busy>
+      {{ csrf() }}
+      <label class="drop" data-drop>
+        <input type="file" name="logfile" accept=".csv,text/csv" data-file-input>
+        <span class="drop__icon" aria-hidden="true">⬆</span>
+        <span class="drop__text" data-file-label>CSV 파일을 선택하거나 끌어다 놓으세요</span>
+        <span class="muted small">최대 8 MB · 20만 행 · 파일은 서버에 저장되지 않고 분석 결과만 저장됩니다</span>
+      </label>
+      <div class="form__row">
+        <button class="btn btn--primary" type="submit">분석 실행</button>
+        <span class="muted small">분석 차량: {{ vehicle.nickname if vehicle else '미지정' }}</span>
+      </div>
+    </form>
+    <div class="divider"><span>또는</span></div>
+    <form method="post" action="{{ url_for('main.analyze_submit') }}" data-busy>
+      {{ csrf() }}<input type="hidden" name="use_sample" value="1">
+      <button class="btn btn--ghost" type="submit">샘플 주행 데이터로 분석해보기</button>
+      <a class="link small" href="{{ url_for('main.sample_csv') }}">샘플 CSV 다운로드</a>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>CSV 형식</h2>
+    <table class="table table--compact">
+      <thead><tr><th>열 이름</th><th>필수</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><code>timestamp_s</code></td><td>필수</td><td>경과 시간(초), 증가 순서</td></tr>
+        <tr><td><code>speed_kmh</code></td><td>필수</td><td>속도 (km/h)</td></tr>
+        <tr><td><code>accel_long_g</code></td><td>선택</td><td>종방향 가속도 (g, +가속 / −감속). 없으면 속도에서 계산</td></tr>
+        <tr><td><code>accel_lat_g</code></td><td>선택</td><td>횡방향 가속도 (g). 없으면 조향·코너링 평가 생략</td></tr>
+        <tr><td><code>heart_rate_bpm</code></td><td>선택</td><td>웨어러블 심박 (가민·스마트워치 등). 급조작 직후 심박 변화 분석</td></tr>
+      </tbody>
+    </table>
+    <ul class="guide guide--muted small">
+      <li>권장 샘플링: 5–10 Hz 이상, 주행 거리 1 km 이상</li>
+      <li>차간거리 유지는 레이더·ADAS 데이터가 필요해 프로토타입에서 평가하지 않습니다.</li>
+      <li>점수는 운전자를 단정적으로 평가하는 수치가 아니라 학습과 개선을 돕는 지표입니다.</li>
+    </ul>
+  </section>
+</div>
+
+<section class="card">
+  <h2>최근 리포트</h2>
+  {% if reports %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>종합</th><th>일시</th><th>차량</th><th>거리</th><th>데이터</th><th></th></tr></thead>
+        <tbody>
+          {% for r in reports %}
+            <tr>
+              <td>{{ ring(r.overall, 'xs', '종합') }}</td>
+              <td>{{ r.created_at }}</td>
+              <td>{{ r.nickname or '–' }}</td>
+              <td>{{ '%.1f'|format(r.distance_km) }} km</td>
+              <td>{{ r.source }}</td>
+              <td class="t-right"><a class="link" href="{{ url_for('main.report', rid=r.id) }}">열기 →</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="muted">아직 리포트가 없습니다.</p>
+  {% endif %}
+</section>
+{% endblock %}

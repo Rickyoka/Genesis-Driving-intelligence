@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, stamp, bar %}
+{% block title %}드라이빙 스탬프 투어{% endblock %}
+{% block content %}
+<header class="page-head page-head--row">
+  <div>
+    <p class="eyebrow">Drive Stamp Tour · Genesis Points</p>
+    <h1>드라이빙 스탬프 투어</h1>
+    <p class="lead">코스의 체크포인트에 도착하면 위치를 확인해 <b>스탬프가 자동으로 찍힙니다</b>. 스탬프마다 {{ stamp_points }}P, 컬렉션을 완성하거나 개수 목표를 달성하면 보너스 Genesis 포인트가 적립됩니다.</p>
+  </div>
+  <div class="points-card">
+    <p class="label">Genesis 포인트 <span class="chip">컨셉</span></p>
+    <p class="points-card__v" data-points>{{ '{:,}'.format(points) }}<span>P</span></p>
+    <p class="muted small">스탬프 {{ have|length }} / {{ courses|length }}</p>
+  </div>
+</header>
+
+<section class="card autostamp" data-autostamp data-url="{{ url_for('main.stamps_checkin') }}" data-csrf="{{ csrf_token() }}">
+  <div class="autostamp__head">
+    <div>
+      <h2 class="m0">자동 스탬프</h2>
+      <p class="muted small m0" data-as-status>꺼짐 · 켜면 위치를 확인해 체크포인트 반경 안에서 자동으로 적립합니다.</p>
+    </div>
+    <button class="btn btn--primary" type="button" data-as-toggle aria-pressed="false">자동 스탬프 켜기</button>
+  </div>
+  <ul class="guide guide--muted small">
+    <li><b>운전 중에는 휴대폰을 조작하지 마세요.</b> 켜 두면 도착 시 화면 조작 없이 적립됩니다.</li>
+    <li>위치는 체크포인트 반경 비교에만 쓰이며 <b>좌표는 저장하지 않습니다</b>. 스탬프·시간만 기록됩니다.</li>
+    <li>위치 정확도 ±{{ 300 }} m 이내, 이동 속도가 비정상적인 체크인은 보류됩니다. 실서비스에서는 차량 GPS(커넥티드 서비스)로 검증합니다.</li>
+    <li>포인트는 방문에만 적립되며 <b>속도·주행 시간·도로 위험도와 무관</b>합니다.</li>
+  </ul>
+</section>
+
+<section class="card" id="book">
+  <div class="card__head">
+    <h2>스탬프 북</h2>
+    <span class="muted small">{{ have|length }} / {{ courses|length }} 수집</span>
+  </div>
+  {{ bar((have|length / courses|length * 100)|round) }}
+  <div class="stamp-grid">
+    {% for c in courses %}
+      {% set row = have.get(c.id) %}
+      <div class="stamp-cell">
+        {{ stamp(c, row, loop.index0) }}
+        <a class="stamp-cell__name" href="{{ url_for('main.course_detail', course_id=c.id) }}">{{ c.name }}</a>
+        <span class="muted small">{{ c.checkpoint.label }}</span>
+        {% if row %}
+          <span class="small pos">{{ source_labels[row.source] }} · {{ row.visits }}회 방문</span>
+        {% elif demo_mode %}
+          <form method="post" action="{{ url_for('main.stamps_demo', course_id=c.id) }}">{{ csrf() }}
+            <button class="btn btn--ghost btn--sm" type="submit">도착 시뮬레이션</button></form>
+        {% else %}
+          <span class="small muted">+{{ stamp_points }}P</span>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  <p class="note">{{ checkpoint_note }}</p>
+</section>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>컬렉션 보너스</h2>
+    <ul class="sets">
+      {% for s in sets %}
+        <li class="set{% if s.done %} is-done{% endif %}">
+          <div class="set__head"><b>{{ s.title }}</b><span class="{{ 'pos' if s.done else 'muted' }} small">{{ '완성 ' if s.done }}+{{ '{:,}'.format(s.bonus) }}P</span></div>
+          {{ bar((s.got / s.need * 100)|round, 'bar--hi' if s.done else '') }}
+          <p class="small muted">{% for c in s.courses %}<span class="{{ 'pos' if c.have }}">{{ '✓ ' if c.have }}{{ c.name }}</span>{{ ' · ' if not loop.last }}{% endfor %}</p>
+        </li>
+      {% endfor %}
+    </ul>
+    <h3 class="subhead">개수 마일스톤</h3>
+    <ul class="guide guide--muted small">
+      {% for count, title, bonus in milestones %}<li>스탬프 {{ count }}개 · {{ title }} <b>+{{ '{:,}'.format(bonus) }}P</b> {{ '✓' if have|length >= count }}</li>{% endfor %}
+      <li>전체 {{ courses|length }}개 · 전국 그랜드 투어 완주 <b>+{{ '{:,}'.format(grand_bonus) }}P</b> {{ '✓' if have|length >= courses|length }}</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>포인트 내역</h2>
+    {% if ledger %}
+      <ul class="ledger">
+        {% for e in ledger %}
+          <li><span>{{ e.reason }}<br><span class="muted small">{{ e.created_at.replace('T', ' ') }}</span></span><b class="pos">+{{ '{:,}'.format(e.amount) }}P</b></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">아직 적립 내역이 없습니다. 첫 체크포인트를 방문해 보세요.</p>
+    {% endif %}
+    <h3 class="subhead">포인트 사용처 (제안 예시)</h3>
+    <ul class="guide guide--muted small">
+      <li>드라이빙 아카데미 교육·서킷 입문 과정 할인</li>
+      <li>Magma 시승·트랙데이 우선 예약</li>
+      <li>정비·세차·충전 서비스 쿠폰</li>
+      <li>파트너 브랜드 협업 에디션 응모 (파트너십 페이지 참고)</li>
+    </ul>
+    {% if demo_mode %}
+      <form class="reset-form" method="post" action="{{ url_for('main.stamps_reset') }}" data-confirm="스탬프와 포인트를 모두 초기화할까요? (시연용)">{{ csrf() }}
+        <button class="btn btn--danger btn--sm" type="submit">스탬프·포인트 초기화 (시연용)</button></form>
+    {% endif %}
+  </section>
+</div>
+<p class="note">Genesis 포인트는 컨셉 기능이며 실제 제네시스 포인트·멤버십과 연동되어 있지 않습니다. 실서비스에서는 제네시스 멤버십 포인트 체계와 약관에 맞춰 설계해야 합니다.</p>
+<script type="application/json" id="checkpoint-data">{{ checkpoints|tojson }}</script>
+{% endblock %}

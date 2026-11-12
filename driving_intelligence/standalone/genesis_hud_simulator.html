@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUD 내비 시뮬레이터 · Driving Intelligence for Genesis (Concept)</title>
+<style>
+  :root {
+    --bg: #07080b; --panel: #11141b; --line: rgba(220, 210, 195, .12); --text: #eeece8; --muted: #8f939c;
+    --copper: #c49a6c; --copper-2: #e3c49f; --magma: #ff6a1f;
+    --hud: #8fe9ff; --hud-glow: rgba(120, 220, 255, .55); --warn: #ffb36b; --warn-glow: rgba(255, 150, 60, .6);
+    --font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: radial-gradient(1000px 500px at 80% -10%, rgba(255, 106, 31, .07), transparent 60%), var(--bg); color: var(--text); font: 15px/1.55 var(--font); word-break: keep-all; }
+  .wrap { width: min(1180px, 100% - 32px); margin: 0 auto; padding: 22px 0 40px; }
+  header p { margin: 0; }
+  .eyebrow { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--copper); font-weight: 600; }
+  h1 { font-size: clamp(1.5rem, 3vw, 2.1rem); margin: 4px 0 6px; letter-spacing: -.02em; }
+  .lead { color: #c4c7ce; max-width: 820px; }
+  .muted { color: var(--muted); } .small { font-size: .84rem; }
+
+  /* ---------- windshield ---------- */
+  .scene { position: relative; margin-top: 18px; aspect-ratio: 16 / 8.2; border-radius: 26px 26px 14px 14px; overflow: hidden; border: 1px solid var(--line); background: #050608; box-shadow: 0 20px 50px rgba(0, 0, 0, .5); }
+  .scene canvas.world { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .sky { fill: url(#sky); } .ground { fill: url(#ground); }
+  .mount { fill: #0d1119; } .mount2 { fill: #0a0d13; }
+  .surface { fill: rgba(255, 255, 255, .05); }
+  .edge { fill: none; stroke: rgba(255, 255, 255, .42); stroke-width: 4; }
+  .center { fill: none; stroke: rgba(245, 192, 75, .6); stroke-width: 4; stroke-dasharray: 26 34; }
+  .pillar { position: absolute; top: 0; bottom: 0; width: 7%; background: linear-gradient(90deg, #020203, rgba(2, 2, 3, 0)); pointer-events: none; }
+  .pillar.r { right: 0; transform: scaleX(-1); }
+  .dash { position: absolute; left: 0; right: 0; bottom: 0; height: 13%; background: linear-gradient(180deg, rgba(10, 10, 12, 0), #08090b 40%); pointer-events: none; }
+  .tag { position: absolute; top: 14px; left: 16px; font-size: .7rem; letter-spacing: .14em; color: var(--muted); background: rgba(0, 0, 0, .45); padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); z-index: 3; }
+
+  /* ---------- HUD projection ---------- */
+  .hud { position: absolute; left: 50%; bottom: 18%; transform: translateX(-50%); width: min(66%, 640px); z-index: 2;
+         display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "prog prog prog" "spd turn lim" "msg msg msg"; gap: 10px 22px; align-items: center;
+         padding: 14px 22px 16px; color: var(--hud); text-shadow: 0 0 12px var(--hud-glow);
+         background: linear-gradient(180deg, rgba(6, 14, 22, .42), rgba(10, 26, 38, .55)); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); border: 1px solid rgba(120, 220, 255, .16); border-radius: 14px; transition: color .3s; }
+  .hud.warn .turn, .hud.warn .msg__main { color: var(--warn); text-shadow: 0 0 12px var(--warn-glow); }
+  .hud.alert .turn { animation: pulse .8s ease-in-out infinite alternate; }
+  @keyframes pulse { from { opacity: 1; } to { opacity: .55; } }
+  .prog { grid-area: prog; display: flex; gap: 5px; align-items: center; font-size: .72rem; letter-spacing: .08em; opacity: .85; }
+  .prog i { flex: 1; height: 3px; border-radius: 2px; background: rgba(143, 233, 255, .18); }
+  .prog i.done { background: rgba(143, 233, 255, .7); } .prog i.now { background: var(--warn); box-shadow: 0 0 6px var(--warn-glow); }
+  .prog span { margin-left: 6px; white-space: nowrap; }
+  .spd { grid-area: spd; font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 300; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .spd small { font-size: .85rem; margin-left: 4px; opacity: .8; }
+  .turn { grid-area: turn; justify-self: start; display: flex; align-items: center; gap: 14px; }
+  .arrow { width: 62px; height: 62px; flex: none; transition: transform .35s; }
+  .arrow path { fill: none; stroke: currentColor; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+  .arrow.left { transform: scaleX(-1); } .arrow.hide { opacity: 0; }
+  .dist { font-size: 1.65rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sev { font-size: .82rem; letter-spacing: .1em; opacity: .9; }
+  .lim { grid-area: lim; width: 54px; height: 54px; border-radius: 50%; border: 5px solid #ff5a5a; display: grid; place-items: center; font-weight: 800; font-size: 1.15rem; color: #fff; text-shadow: none; background: rgba(0, 0, 0, .35); }
+  .msg { grid-area: msg; position: relative; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; border-top: 1px solid rgba(120, 220, 255, .16); padding-top: 9px; font-size: .95rem; }
+  .msg__hint { color: #ffd59a; text-shadow: none; }
+  .stamp-pop { position: absolute; left: 50%; top: 18%; transform: translate(-50%, -10px) scale(.9); z-index: 4; opacity: 0; transition: opacity .5s, transform .5s;
+               padding: 14px 22px; border-radius: 14px; background: rgba(23, 19, 15, .92); border: 1px solid rgba(196, 154, 108, .6); text-align: center; color: var(--copper-2); box-shadow: 0 10px 30px rgba(0, 0, 0, .5); }
+  .stamp-pop.on { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  .stamp-pop b { display: block; font-size: 1.15rem; color: #fff; }
+
+  /* numbered explanation badges */
+  .explain [data-n] { position: relative; }
+  .explain [data-n]::after { content: attr(data-n); position: absolute; top: -12px; left: -14px; width: 22px; height: 22px; border-radius: 50%; background: var(--magma); color: #111; font: 800 12px/22px var(--font); text-align: center; text-shadow: none; box-shadow: 0 0 0 2px #050608; }
+
+  /* ---------- controls ---------- */
+  .bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-top: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+  .bar label { display: flex; align-items: center; gap: 8px; font-size: .85rem; color: #c4c7ce; font-weight: 600; }
+  select, button { font: inherit; color: var(--text); background: #0c0e13; border: 1px solid rgba(220, 210, 195, .22); border-radius: 9px; padding: 8px 12px; cursor: pointer; }
+  select:focus-visible, button:focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+  .seg { display: inline-flex; border: 1px solid rgba(220, 210, 195, .22); border-radius: 10px; padding: 3px; gap: 2px; }
+  .seg button { border: 0; background: none; padding: 6px 12px; border-radius: 7px; color: var(--muted); font-weight: 700; font-size: .84rem; }
+  .seg button[aria-pressed="true"] { background: var(--copper); color: #17110b; }
+  .primary { background: linear-gradient(135deg, var(--copper-2), var(--copper)); color: #17110b; border: 0; font-weight: 800; }
+  .spacer { flex: 1; }
+
+  /* ---------- explanation ---------- */
+  .grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; margin-top: 16px; }
+  .card { border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(180deg, #12151c, #0c0e13); padding: 18px 20px; }
+  .card h2 { font-size: 1.02rem; margin: 0 0 10px; }
+  .legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+  .legend li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; font-size: .9rem; }
+  .legend .n { width: 22px; height: 22px; border-radius: 50%; background: var(--magma); color: #111; font-weight: 800; font-size: 12px; display: grid; place-items: center; }
+  table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-size: .72rem; letter-spacing: .1em; }
+  .c-hud { color: var(--hud); } .c-warn { color: var(--warn); }
+  .note { color: var(--muted); font-size: .78rem; margin-top: 14px; }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+    .scene { aspect-ratio: 4 / 3.3; }
+    .hud { width: 92%; padding: 10px 12px; gap: 8px 12px; bottom: 12%; }
+    .arrow { width: 44px; height: 44px; } .lim { width: 44px; height: 44px; font-size: 1rem; }
+    .dist { font-size: 1.3rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .hud.alert .turn { animation: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Driving Intelligence for Genesis · Concept</p>
+    <h1>헤드업 디스플레이(HUD) 내비 시뮬레이터</h1>
+    <p class="lead">야간 산악도로를 실제 원근으로 재현했습니다. 학습형 내비가 고른 코스를 달리면 앞 유리에 무엇이 어떻게 뜨는지 보여줍니다. 공도에서는 <b>안전 안내만</b> 표시하며, 제동 지점·코너 진입 속도 같은 성능 코칭은 표시하지 않습니다.</p>
+  </header>
+
+  <div class="scene" id="scene">
+    <span class="tag" id="tag">HUD 시뮬레이션</span>
+    <canvas id="world" class="world" aria-hidden="true"></canvas>
+
+    <div class="stamp-pop" id="pop" role="status" aria-live="polite"><span>📍 체크포인트 도착</span><b id="popTitle">스탬프 자동 적립</b><span id="popSub">+100P</span></div>
+
+    <div class="hud" id="hud" aria-live="polite">
+      <div class="prog" id="prog" data-n="6"></div>
+      <div class="spd" data-n="1"><span id="spd">0</span><small>km/h</small></div>
+      <div class="turn" data-n="2">
+        <svg class="arrow" id="arrow" viewBox="0 0 60 60" aria-hidden="true"><path d="M18 52 V30 Q18 16 32 16 H46 M38 8 L46 16 L38 24"/></svg>
+        <div><div class="dist" id="dist" data-n="3">– m</div><div class="sev" id="sev">–</div></div>
+      </div>
+      <div class="lim" id="lim" data-n="4" title="제한속도 (예시)">60</div>
+      <div class="msg" data-n="5"><span class="msg__main" id="msg">출발 준비</span><span class="msg__hint" id="hint"></span></div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <label>코스 <select id="course"></select></label>
+    <label>차량
+      <span class="seg" role="group" aria-label="파워트레인">
+        <button type="button" data-pt="ice" aria-pressed="true">내연기관</button>
+        <button type="button" data-pt="ev" aria-pressed="false">전기차 (GV60 Magma)</button>
+      </span>
+    </label>
+    <label>배속
+      <span class="seg" role="group" aria-label="재생 배속">
+        <button type="button" data-ts="2" aria-pressed="false">×2</button>
+        <button type="button" data-ts="4" aria-pressed="true">×4</button>
+        <button type="button" data-ts="8" aria-pressed="false">×8</button>
+      </span>
+    </label>
+    <span class="spacer"></span>
+    <button type="button" id="explainBtn" aria-pressed="false">① 화면 구성 번호 보기</button>
+    <button type="button" id="restart">처음부터</button>
+    <button type="button" id="play" class="primary">재생</button>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>HUD에 뜨는 정보</h2>
+      <ol class="legend">
+        <li><span class="n">1</span><span><b>현재 속도</b> — 좌측에 크게. 항상 제한속도 이하로 주행하는 상황을 가정합니다.</span></li>
+        <li><span class="n">2</span><span><b>다음 코너 방향·강도</b> — 화살표와 함께 <i>완만 · 보통 · 급커브 · 헤어핀</i> 4단계. 급커브 이상이 300 m 안으로 들어오면 <span class="c-warn">주황색 경고</span>로 바뀌고, 150 m 안에서는 깜박입니다.</span></li>
+        <li><span class="n">3</span><span><b>코너까지 남은 거리</b> — 실시간으로 줄어듭니다.</span></li>
+        <li><span class="n">4</span><span><b>제한속도</b> — 우측 원형 표지 (시뮬레이션은 예시 값).</span></li>
+        <li><span class="n">5</span><span><b>안전 안내 + 파워트레인 힌트</b> — "직선에서 감속 완료", "차로 중앙 유지" 등. 내리막에서는 <i>내연기관: 수동 모드 저단 고정</i>, <i>전기차: 회생제동 강도 높임</i>.</span></li>
+        <li><span class="n">6</span><span><b>코스 진행 바</b> — 전체 구간 중 현재 위치. 마지막은 체크포인트이며 도착하면 <b>스탬프 자동 적립</b> 팝업이 뜹니다.</span></li>
+      </ol>
+    </section>
+    <section class="card">
+      <h2>표시 규칙</h2>
+      <table>
+        <thead><tr><th>상황</th><th>HUD 표시</th></tr></thead>
+        <tbody>
+          <tr><td>직선·완만 구간</td><td class="c-hud">속도 · 다음 코너 · "일정한 속도 유지"</td></tr>
+          <tr><td>보통 커브</td><td class="c-hud">방향 화살표 · "차로 중앙 유지"</td></tr>
+          <tr><td>급커브·헤어핀 300 m 전</td><td class="c-warn">주황 경고 · "직선에서 감속 완료"</td></tr>
+          <tr><td>150 m 전</td><td class="c-warn">경고 깜박임</td></tr>
+          <tr><td>코너 통과 중</td><td class="c-hud">"코너 진행 중 · 일정한 속도"</td></tr>
+          <tr><td>긴 내리막</td><td>파워트레인별 감속 힌트</td></tr>
+          <tr><td>체크포인트 도착</td><td>📍 정차 안내 + 스탬프 +100P</td></tr>
+        </tbody>
+      </table>
+      <p class="note">표시하지 않는 것: 권장 코너 진입 속도, 제동 지점, 랩타임 — 이런 성능 코칭은 폐쇄 서킷 모드 전용입니다.</p>
+    </section>
+  </div>
+  <p class="note">시연용 시뮬레이션입니다. 코너 순서·거리·제한속도는 코스 특성으로 생성한 예시이며 실제 도로 형상이 아닙니다. 실서비스에서는 지도 API의 도로 곡률 데이터와 차량 내비게이션·HUD 모듈 연동으로 구현합니다. 비공식 컨셉 시연이며 Genesis의 공식 앱이 아닙니다.</p>
+</div>
+
+<script>
+/* DIScene — realistic pseudo-3D night road for the HUD windshield (no libraries, no assets).
+ *
+ *   var scene = DIScene.create(canvas);
+ *   scene.set({ speed: 55, curve: 0.6, cornerAt: 250, grade: -1 });  // km/h, -1..1, metres, -1/0/1
+ *   scene.start(); scene.stop(); scene.destroy();
+ *
+ * Korean road conventions: right-hand traffic (camera in the right lane), double yellow centre line,
+ * white edge lines, W-beam guardrails with reflectors. Lighting = headlight falloff + distance fog.
+ * One rAF loop at most; ResizeObserver and loop are released by stop()/destroy() (no leaks).
+ */
+(function (global) {
+  "use strict";
+
+  var SEG = 4;            // metres per segment
+  var N = 190;            // segments drawn (~760 m)
+  var ROAD = 3.6;         // half road width (m)
+  var SHOULDER = 5.0;
+  var RAIL = 5.4;
+  var CAM_H = 1.25;       // camera height (m)
+  var CAM_X = 1.8;        // right lane centre
+  var FOV = 72 * Math.PI / 180;
+  var DEPTH = 1 / Math.tan(FOV / 2);
+  var FOG = [9, 12, 19];
+
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function shade(rgb, light, fog) {
+    var r = rgb[0] * light, g = rgb[1] * light, b = rgb[2] * light;
+    r += (FOG[0] - r) * fog; g += (FOG[1] - g) * fog; b += (FOG[2] - b) * fog;
+    return "rgb(" + (r | 0) + "," + (g | 0) + "," + (b | 0) + ")";
+  }
+  function rand(seed) { return function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
+
+  function create(canvas, opts) {
+    opts = opts || {};
+    var ctx = canvas.getContext("2d", { alpha: false });
+    var st = { speed: 0, curve: 0, curveNow: 0, cornerAt: 9999, grade: 0, gradeNow: 0, pos: 0, sky: 0,
+               raf: 0, running: false, last: 0, W: 0, H: 0, dpr: 1 };
+    var R = rand(opts.seed || 7);
+    var stars = [];
+    for (var i = 0; i < 140; i++) stars.push([R(), R() * 0.42, R() * 1.2 + 0.2, R()]);
+    function ridge(n, amp, base) {
+      var pts = [], h = 0;
+      for (var k = 0; k <= n; k++) { h = clamp(h + (R() - 0.5) * amp, -amp * 2, amp * 2); pts.push(base - Math.abs(h) - R() * amp * 0.4); }
+      return pts;
+    }
+    var far = ridge(64, 0.05, 0.0), near = ridge(48, 0.07, 0.0);
+    var noise = makeNoise();
+
+    function makeNoise() {
+      var c = document.createElement("canvas"); c.width = c.height = 96;
+      var g = c.getContext("2d"), img = g.createImageData(96, 96);
+      for (var p = 0; p < img.data.length; p += 4) {
+        var v = 128 + (R() - 0.5) * 60;
+        img.data[p] = img.data[p + 1] = img.data[p + 2] = v; img.data[p + 3] = 22;
+      }
+      g.putImageData(img, 0, 0);
+      return c;
+    }
+
+    function resize() {
+      var r = canvas.getBoundingClientRect();
+      st.dpr = Math.min(global.devicePixelRatio || 1, 2);
+      st.W = Math.max(1, Math.round(r.width * st.dpr));
+      st.H = Math.max(1, Math.round(r.height * st.dpr));
+      if (canvas.width !== st.W || canvas.height !== st.H) { canvas.width = st.W; canvas.height = st.H; }
+      if (!st.running) draw();
+    }
+    var ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
+    if (ro) ro.observe(canvas); else global.addEventListener("resize", resize);
+
+    // ------------------------------------------------------------------ drawing
+    function drawSky(W, H, horizon) {
+      var g = ctx.createLinearGradient(0, 0, 0, horizon);
+      g.addColorStop(0, "#03050a"); g.addColorStop(0.7, "#0b1120"); g.addColorStop(1, "#1a2335");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, horizon + 2);
+      var mx = W * 0.78 - st.sky * W * 0.05, my = horizon * 0.32;
+      var mg = ctx.createRadialGradient(mx, my, 0, mx, my, W * 0.12);
+      mg.addColorStop(0, "rgba(220,228,255,.35)"); mg.addColorStop(0.08, "rgba(200,210,240,.18)"); mg.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = mg; ctx.fillRect(0, 0, W, horizon);
+      ctx.fillStyle = "#e9eefc"; ctx.beginPath(); ctx.arc(mx, my, W * 0.008, 0, 6.283); ctx.fill();
+      for (var i = 0; i < stars.length; i++) {
+        var s = stars[i], x = ((s[0] * W - st.sky * W * 0.08) % W + W) % W;
+        ctx.globalAlpha = 0.25 + s[3] * 0.6; ctx.fillStyle = "#cfd8ff";
+        ctx.fillRect(x, s[1] * H, s[2] * st.dpr, s[2] * st.dpr);
+      }
+      ctx.globalAlpha = 1;
+      layer(far, "#121826", 0.10, W, horizon, H * 1.3);
+      layer(near, "#0b0f17", 0.22, W, horizon, H * 1.0);
+      var hz = ctx.createLinearGradient(0, horizon - H * 0.05, 0, horizon + 2);
+      hz.addColorStop(0, "rgba(40,52,74,0)"); hz.addColorStop(1, "rgba(40,52,74,.55)");
+      ctx.fillStyle = hz; ctx.fillRect(0, horizon - H * 0.05, W, H * 0.05 + 2);
+    }
+    function layer(pts, color, par, W, horizon, scale) {
+      // pts are <= 0 (height above horizon as a fraction); tiled twice for seamless parallax
+      var n = pts.length - 1, span = W * 1.6, step = span / n, off = ((st.sky * W * par) % span + span) % span;
+      ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(-off, horizon + 2);
+      for (var rep = 0; rep < 2; rep++)
+        for (var k = 0; k <= n; k++) ctx.lineTo(-off + rep * span + k * step, horizon + pts[k] * scale);
+      ctx.lineTo(-off + 2 * span, horizon + 2); ctx.closePath(); ctx.fill();
+    }
+
+    function quad(x1, y1, w1, x2, y2, w2, color) {
+      ctx.fillStyle = color; ctx.beginPath();
+      ctx.moveTo(x1 - w1, y1); ctx.lineTo(x1 + w1, y1); ctx.lineTo(x2 + w2, y2); ctx.lineTo(x2 - w2, y2);
+      ctx.closePath(); ctx.fill();
+    }
+    function band(p1, p2, a, b, color) { // lateral band between world offsets a..b
+      var c1 = p1.X + (a + b) / 2 * p1.S, c2 = p2.X + (a + b) / 2 * p2.S;
+      quad(c1, p1.Y, (b - a) / 2 * p1.S, c2, p2.Y, (b - a) / 2 * p2.S, color);
+    }
+
+    function draw() {
+      var W = st.W, H = st.H;
+      if (!W || !H) return;
+      var horizon = H * 0.46, half = W / 2;
+      drawSky(W, H, horizon);
+      // base ground in fog colour: sub-pixel far segments are skipped below, so never leave rows unpainted
+      ctx.fillStyle = "rgb(" + FOG.join(",") + ")";
+      ctx.fillRect(0, horizon, W, H - horizon);
+
+      var base = Math.floor(st.pos / SEG), frac = (st.pos % SEG) / SEG;
+      var x = 0, dx = 0, P = [];
+      for (var n = 0; n <= N; n++) {
+        var d = (n - frac) * SEG;
+        var z = Math.max(0.6, d + 1.5);
+        var ramp = clamp((d - st.cornerAt) / 40, 0, 1);
+        x += dx; dx += st.curveNow * 0.25 * ramp;
+        var y = st.gradeNow * 0.045 * d - st.gradeNow * 0.00004 * d * d;
+        var s = DEPTH / z * half;
+        P.push({ X: half + (x - CAM_X) * s, Y: horizon + (CAM_H - y) * s, S: s, z: z, n: base + n });
+      }
+      st.sky += (P[N].X - half) / W * 0.0004;
+
+      var clipY = H;
+      for (var k = N; k > 0; k--) {
+        var p2 = P[k], p1 = P[k - 1];
+        if (p2.Y >= p1.Y) continue;                  // hidden behind a crest (or sub-pixel)
+        var light = clamp(1.25 - p1.z / 60, 0.07, 1);
+        var retro = clamp(1.35 - p1.z / 170, 0.12, 1);   // retroreflective paint / steel stays visible further
+        var fog = Math.pow(clamp(p1.z / (N * SEG * 0.85), 0, 1), 1.15);
+        var alt = (p1.n >> 1) & 1;
+        ctx.fillStyle = shade([24, 27, 24], light * 0.8, fog);
+        ctx.fillRect(0, p2.Y, W, p1.Y - p2.Y + 1);                     // roadside / ground
+        band(p1, p2, -SHOULDER, SHOULDER, shade([46, 46, 46], light, fog));   // gravel shoulder
+        band(p1, p2, -ROAD, ROAD, shade(alt ? [44, 46, 50] : [39, 41, 45], light, fog)); // asphalt
+        band(p1, p2, -ROAD + 0.1, -ROAD + 0.25, shade([215, 215, 210], retro, fog * 0.7));  // edge lines
+        band(p1, p2, ROAD - 0.25, ROAD - 0.1, shade([215, 215, 210], retro, fog * 0.7));
+        band(p1, p2, -0.2, -0.08, shade([236, 176, 52], retro, fog * 0.7));                 // double yellow
+        band(p1, p2, 0.08, 0.2, shade([236, 176, 52], retro, fog * 0.7));
+        var steel = shade([128, 134, 140], Math.max(light * 0.9, retro * 0.55), fog * 0.8);
+        for (var side = -1; side <= 1; side += 2) {                    // W-beam guardrail
+          var gx = side * RAIL;
+          var a1 = p1.X + gx * p1.S, a2 = p2.X + gx * p2.S;
+          var h1a = 0.55 * p1.S, h1b = 0.78 * p1.S, h2a = 0.55 * p2.S, h2b = 0.78 * p2.S;
+          ctx.fillStyle = steel; ctx.beginPath();
+          ctx.moveTo(a1, p1.Y - h1a); ctx.lineTo(a1, p1.Y - h1b); ctx.lineTo(a2, p2.Y - h2b); ctx.lineTo(a2, p2.Y - h2a);
+          ctx.closePath(); ctx.fill();
+          if (p1.n % 6 === 0) {
+            var pw = Math.max(1, 0.12 * p1.S);
+            ctx.fillStyle = shade([70, 74, 78], light, fog);
+            ctx.fillRect(a1 - pw / 2, p1.Y - 0.8 * p1.S, pw, 0.8 * p1.S);
+            var rb = clamp(1.4 - p1.z / 140, 0, 1);                      // reflectors catch headlights
+            if (rb > 0.02) {
+              ctx.fillStyle = side < 0 ? "rgba(255,170,60," + rb + ")" : "rgba(235,240,255," + rb + ")";
+              var rs = Math.max(1.2, 0.1 * p1.S);
+              ctx.fillRect(a1 - rs / 2, p1.Y - 0.72 * p1.S, rs, rs);
+            }
+          }
+        }
+        clipY = Math.min(clipY, p2.Y);
+      }
+
+      // asphalt grain + headlight pool
+      ctx.save();
+      ctx.globalAlpha = 0.6; ctx.fillStyle = ctx.createPattern(noise, "repeat");
+      ctx.translate(0, (st.pos * 40) % 96); ctx.fillRect(0, horizon - 96, W, H - horizon + 192);
+      ctx.restore();
+      var hl = ctx.createRadialGradient(half, H * 1.02, H * 0.05, half, H * 0.9, W * 0.55);
+      hl.addColorStop(0, "rgba(255,238,205,.20)"); hl.addColorStop(0.5, "rgba(255,238,205,.07)"); hl.addColorStop(1, "rgba(255,238,205,0)");
+      ctx.fillStyle = hl; ctx.fillRect(0, horizon, W, H - horizon);
+
+      drawCabin(W, H);
+    }
+
+    function drawCabin(W, H) {
+      var v = ctx.createRadialGradient(W / 2, H * 0.55, H * 0.35, W / 2, H * 0.55, W * 0.75);
+      v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(0,0,0,.65)");
+      ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "rgba(255,255,255,.025)";                        // glass reflection streak
+      ctx.beginPath(); ctx.moveTo(W * 0.18, 0); ctx.lineTo(W * 0.30, 0); ctx.lineTo(W * 0.12, H * 0.7); ctx.lineTo(W * 0.02, H * 0.7); ctx.fill();
+      var pl = ctx.createLinearGradient(0, 0, W * 0.09, 0);             // A-pillars
+      pl.addColorStop(0, "#020203"); pl.addColorStop(1, "rgba(2,2,3,0)");
+      ctx.fillStyle = pl; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(W * 0.1, 0); ctx.lineTo(W * 0.03, H); ctx.lineTo(0, H); ctx.fill();
+      ctx.save(); ctx.translate(W, 0); ctx.scale(-1, 1); ctx.fillStyle = pl;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(W * 0.1, 0); ctx.lineTo(W * 0.03, H); ctx.lineTo(0, H); ctx.fill(); ctx.restore();
+      var top = H * 0.86;                                               // dashboard edge
+      var dg = ctx.createLinearGradient(0, top - H * 0.04, 0, H);
+      dg.addColorStop(0, "#15120f"); dg.addColorStop(0.25, "#0c0b0a"); dg.addColorStop(1, "#050505");
+      ctx.fillStyle = dg; ctx.beginPath();
+      ctx.moveTo(0, H); ctx.lineTo(0, top + H * 0.02);
+      ctx.quadraticCurveTo(W / 2, top - H * 0.05, W, top + H * 0.02); ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "rgba(196,154,108,.45)"; ctx.lineWidth = Math.max(1, st.dpr); ctx.setLineDash([6 * st.dpr, 5 * st.dpr]);
+      ctx.beginPath(); ctx.moveTo(0, top + H * 0.045); ctx.quadraticCurveTo(W / 2, top - H * 0.025, W, top + H * 0.045); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // ------------------------------------------------------------------ loop
+    function frame(t) {
+      if (!st.running) return;
+      var dt = Math.min(0.05, (t - st.last) / 1000); st.last = t;
+      var mps = st.speed / 3.6;
+      st.pos += mps * dt;
+      if (st.cornerAt > 0) st.cornerAt = Math.max(0, st.cornerAt - mps * dt);
+      st.curveNow += (st.curve - st.curveNow) * Math.min(1, dt * 2.5);
+      st.gradeNow += (st.grade - st.gradeNow) * Math.min(1, dt * 1.5);
+      draw();
+      st.raf = global.requestAnimationFrame(frame);
+    }
+
+    resize();
+    return {
+      set: function (o) {
+        if (o.speed !== undefined) st.speed = clamp(+o.speed || 0, 0, 200);
+        if (o.curve !== undefined) st.curve = clamp(+o.curve || 0, -1, 1);
+        if (o.cornerAt !== undefined) st.cornerAt = Math.max(0, +o.cornerAt || 0);
+        if (o.grade !== undefined) st.grade = clamp(+o.grade || 0, -1, 1);
+        if (!st.running) { st.curveNow = st.curve; st.gradeNow = st.grade; draw(); }
+      },
+      start: function () { if (st.running) return; st.running = true; st.last = global.performance.now(); st.raf = global.requestAnimationFrame(frame); },
+      stop: function () { st.running = false; if (st.raf) global.cancelAnimationFrame(st.raf); st.raf = 0; },
+      destroy: function () { this.stop(); if (ro) ro.disconnect(); else global.removeEventListener("resize", resize); },
+      draw: draw
+    };
+  }
+
+  global.DIScene = { create: create };
+})(window);
+
+</script>
+<script>
+(function () {
+  "use strict";
+  var COURSES = [{"id": "manhangjae", "name": "만항재 (함백산로)", "region": "강원 정선·태백", "checkpoint": "만항재 정상", "segments": [{"direction": "right", "severity": 3, "distance_m": 150, "limit": 60, "gradient": "up"}, {"direction": "right", "severity": 3, "distance_m": 100, "limit": 60, "gradient": "up"}, {"direction": "right", "severity": 2, "distance_m": 250, "limit": 60, "gradient": "up"}, {"direction": "left", "severity": 3, "distance_m": 100, "limit": 60, "gradient": "up"}, {"direction": "right", "severity": 1, "distance_m": 400, "limit": 60, "gradient": "up"}, {"direction": "left", "severity": 1, "distance_m": 300, "limit": 60, "gradient": "up"}, {"direction": "left", "severity": 2, "distance_m": 250, "limit": 60, "gradient": "down"}, {"direction": "right", "severity": 2, "distance_m": 400, "limit": 60, "gradient": "down"}, {"direction": "left", "severity": 2, "distance_m": 500, "limit": 60, "gradient": "down"}, {"direction": "right", "severity": 2, "distance_m": 200, "limit": 60, "gradient": "down"}, {"direction": "right", "severity": 2, "distance_m": 200, "limit": 60, "gradient": "down"}, {"direction": "right", "severity": 2, "distance_m": 250, "limit": 60, "gradient": "down"}]}, {"id": "jianjae", "name": "지안재", "region": "경남 함양", "checkpoint": "지안재 전망 포인트", "segments": [{"direction": "left", "severity": 2, "distance_m": 250, "limit": 50, "gradient": "flat"}, {"direction": "right", "severity": 2, "distance_m": 300, "limit": 50, "gradient": "flat"}, {"direction": "right", "severity": 1, "distance_m": 400, "limit": 50, "gradient": "flat"}, {"direction": "right", "severity": 3, "distance_m": 100, "limit": 50, "gradient": "flat"}, {"direction": "right", "severity": 3, "distance_m": 100, "limit": 50, "gradient": "flat"}]}, {"id": "hangyeryeong", "name": "한계령", "region": "강원 인제·양양", "checkpoint": "한계령 휴게소", "segments": [{"direction": "right", "severity": 3, "distance_m": 150, "limit": 60, "gradient": "up"}, {"direction": "left", "severity": 3, "distance_m": 150, "limit": 60, "gradient": "up"}, {"direction": "left", "severity": 2, "distance_m": 150, "limit": 60, "gradient": "up"}, {"direction": "left", "severity": 1, "distance_m": 250, "limit": 60, "gradient": "up"}, {"direction": "right", "severity": 3, "distance_m": 150, "limit": 60, "gradient": "up"}, {"direction": "right", "severity": 1, "distance_m": 200, "limit": 60, "gradient": "up"}, {"direction": "right", "severity": 2, "distance_m": 150, "limit": 60, "gradient": "down"}, {"direction": "right", "severity": 3, "distance_m": 200, "limit": 60, "gradient": "down"}, {"direction": "left", "severity": 3, "distance_m": 100, "limit": 60, "gradient": "down"}, {"direction": "left", "severity": 2, "distance_m": 150, "limit": 60, "gradient": "down"}, {"direction": "left", "severity": 1, "distance_m": 600, "limit": 60, "gradient": "down"}, {"direction": "left", "severity": 1, "distance_m": 300, "limit": 60, "gradient": "down"}]}, {"id": "donghae-7", "name": "동해안 국도 (삼척–울진)", "region": "강원 삼척·경북 울진", "checkpoint": "임원항 인근 해안도로", "segments": [{"direction": "left", "severity": 1, "distance_m": 400, "limit": 70, "gradient": "flat"}, {"direction": "left", "severity": 0, "distance_m": 250, "limit": 70, "gradient": "flat"}, {"direction": "right", "severity": 1, "distance_m": 600, "limit": 70, "gradient": "flat"}, {"direction": "left", "severity": 1, "distance_m": 400, "limit": 70, "gradient": "flat"}, {"direction": "right", "severity": 0, "distance_m": 250, "limit": 70, "gradient": "flat"}, {"direction": "right", "severity": 0, "distance_m": 250, "limit": 70, "gradient": "flat"}, {"direction": "left", "severity": 0, "distance_m": 250, "limit": 70, "gradient": "flat"}, {"direction": "left", "severity": 1, "distance_m": 250, "limit": 70, "gradient": "flat"}, {"direction": "right", "severity": 0, "distance_m": 600, "limit": 70, "gradient": "flat"}, {"direction": "right", "severity": 2, "distance_m": 250, "limit": 70, "gradient": "flat"}, {"direction": "right", "severity": 1, "distance_m": 600, "limit": 70, "gradient": "flat"}, {"direction": "left", "severity": 1, "distance_m": 300, "limit": 70, "gradient": "flat"}]}];
+  var SEV = ["완만", "보통", "급커브", "헤어핀"];
+  var DROP = [5, 10, 20, 30];          // corner speed below limit, per severity
+  var BRAKE_ZONE = [0, 150, 280, 320]; // where the "slow down" phase starts (m)
+  var CORNER_TIME = 1.8;               // sim seconds spent "in" a corner
+
+  var $ = function (id) { return document.getElementById(id); };
+  var el = { hud: $("hud"), spd: $("spd"), dist: $("dist"), sev: $("sev"), lim: $("lim"), msg: $("msg"), hint: $("hint"),
+             arrow: $("arrow"), prog: $("prog"), pop: $("pop"), popTitle: $("popTitle"), popSub: $("popSub"), tag: $("tag"),
+             play: $("play"), course: $("course"), scene: $("scene"), explain: $("explainBtn") };
+  var scene = window.DIScene ? window.DIScene.create($("world")) : null;
+  var CURVE = [0, 0.25, 0.55, 1.0];
+
+  var st = { course: COURSES[0], pt: "ice", ts: 4, running: false, raf: 0, last: 0 };
+
+  COURSES.forEach(function (c, i) {
+    var o = document.createElement("option");
+    o.value = String(i);
+    o.textContent = c.name + " · " + c.region;
+    el.course.appendChild(o);
+  });
+
+  function plan(course) {
+    // Each segment = approach distance to a corner. Final leg = checkpoint stop.
+    var legs = course.segments.map(function (s) {
+      return { kind: "corner", dir: s.direction, sev: s.severity, len: Math.max(s.distance_m * 2, 300),
+               limit: s.limit, grad: s.gradient };
+    });
+    var lastLimit = legs.length ? legs[legs.length - 1].limit : 50;
+    legs.push({ kind: "checkpoint", dir: "right", sev: 0, len: 400, limit: lastLimit, grad: "flat" });
+    return legs;
+  }
+
+  function reset() {
+    st.legs = plan(st.course);
+    st.i = 0; st.rem = st.legs[0].len; st.v = 0; st.phase = "approach"; st.timer = 0; st.travel = 0; st.done = false;
+    el.pop.classList.remove("on");
+    el.tag.textContent = "HUD 시뮬레이션 · " + st.course.name;
+    buildProgress();
+    render();
+  }
+
+  function buildProgress() {
+    while (el.prog.firstChild) el.prog.removeChild(el.prog.firstChild);
+    st.legs.forEach(function () { el.prog.appendChild(document.createElement("i")); });
+    var label = document.createElement("span");
+    label.id = "progLabel";
+    el.prog.appendChild(label);
+  }
+
+  function hintFor(leg) {
+    if (leg.grad === "down") return st.pt === "ev" ? "내리막 · 회생제동 강도 높임" : "내리막 · 수동 모드 저단 고정";
+    if (leg.grad === "up" && leg.sev <= 1) return "오르막 · 일정한 속도 유지";
+    return "";
+  }
+
+  function targetSpeed(leg) {
+    var cruise = leg.limit - 5;
+    if (leg.kind === "checkpoint") return st.rem > 0 ? Math.max(8, cruise * Math.min(1, st.rem / 300)) : 0;
+    var corner = Math.max(20, leg.limit - DROP[leg.sev]);
+    if (st.phase === "corner") return corner;
+    var zone = BRAKE_ZONE[leg.sev];
+    if (zone && st.rem <= zone) return corner + (cruise - corner) * (st.rem / zone);
+    return cruise;
+  }
+
+  function step(dt) {
+    var leg = st.legs[st.i];
+    var tgt = targetSpeed(leg);
+    // smooth speed change, never above limit
+    var rate = tgt < st.v ? 18 : 10; // km/h per sim second (decel / accel)
+    st.v += Math.max(-rate * dt, Math.min(rate * dt, tgt - st.v));
+    st.v = Math.min(st.v, leg.limit);
+    var ms = st.v / 3.6;
+    st.travel += ms * dt;
+    if (st.phase === "approach") {
+      st.rem = Math.max(0, st.rem - ms * dt);
+      if (leg.kind === "checkpoint" && st.rem <= 0) { arrive(); return; }
+      if (leg.kind === "corner" && st.rem <= 0) { st.phase = "corner"; st.timer = 0; }
+    } else {
+      st.timer += dt;
+      if (st.timer >= CORNER_TIME) {
+        st.i += 1; st.phase = "approach"; st.rem = st.legs[st.i].len;
+      }
+    }
+  }
+
+  function arrive() {
+    st.v = 0; st.rem = 0; st.done = true;
+    el.popTitle.textContent = st.course.checkpoint + " · 스탬프 자동 적립";
+    el.popSub.textContent = "+100P · Genesis 포인트 (컨셉)";
+    el.pop.classList.add("on");
+    stop();
+    el.play.textContent = "다시 재생";
+  }
+
+  function render() {
+    var leg = st.legs[st.i];
+    var sign = leg.dir === "left" ? -1 : 1;
+    if (scene) scene.set({ speed: st.v, curve: leg.kind === "corner" ? sign * CURVE[leg.sev] : 0,
+                           cornerAt: st.phase === "corner" ? 0 : st.rem,
+                           grade: leg.grad === "down" ? -1 : (leg.grad === "up" ? 1 : 0) });
+
+    el.spd.textContent = String(Math.round(st.v));
+    el.lim.textContent = String(leg.limit);
+    el.arrow.classList.toggle("left", leg.dir === "left");
+    el.arrow.classList.toggle("hide", leg.kind === "checkpoint");
+
+    var warn = false, alert = false, msg, sev;
+    if (leg.kind === "checkpoint") {
+      sev = "📍 체크포인트";
+      el.dist.textContent = st.done ? "도착" : Math.round(st.rem) + " m";
+      msg = st.done ? st.course.checkpoint + " 도착 · 안전한 곳에 정차하세요" : st.course.checkpoint + " 접근 · 서서히 감속";
+    } else if (st.phase === "corner") {
+      sev = (leg.dir === "left" ? "좌" : "우") + " · " + SEV[leg.sev];
+      el.dist.textContent = "진행 중";
+      msg = "코너 진행 중 · 일정한 속도로 통과";
+    } else {
+      sev = (leg.dir === "left" ? "좌" : "우") + " · " + SEV[leg.sev];
+      el.dist.textContent = Math.round(st.rem) + " m";
+      if (leg.sev >= 2 && st.rem <= 300) {
+        warn = true; alert = st.rem <= 150;
+        msg = SEV[leg.sev] + " " + Math.round(st.rem) + " m 앞 · 직선에서 감속 완료";
+      } else if (leg.sev === 1) {
+        msg = (leg.dir === "left" ? "좌" : "우") + "커브 · 차로 중앙 유지";
+      } else if (leg.sev >= 2) {
+        msg = "다음: " + SEV[leg.sev] + " · 미리 속도 여유 확보";
+      } else {
+        msg = "완만한 구간 · 일정한 속도 유지";
+      }
+    }
+    el.sev.textContent = sev;
+    el.msg.textContent = msg;
+    el.hint.textContent = hintFor(leg);
+    el.hud.classList.toggle("warn", warn);
+    el.hud.classList.toggle("alert", alert);
+
+    var bars = el.prog.querySelectorAll("i");
+    for (var k = 0; k < bars.length; k++) {
+      bars[k].className = k < st.i ? "done" : (k === st.i ? "now" : "");
+    }
+    var lbl = document.getElementById("progLabel");
+    if (lbl) lbl.textContent = (st.i + 1) + " / " + st.legs.length;
+  }
+
+  function frame(t) {
+    if (!st.running) return;
+    var dt = Math.min(0.1, (t - st.last) / 1000) * st.ts;  // clamp after tab switches
+    st.last = t;
+    var sub = Math.ceil(dt / 0.05);                       // fixed small sim steps
+    for (var n = 0; n < sub && !st.done; n++) step(dt / sub);
+    render();
+    if (st.running) st.raf = requestAnimationFrame(frame);
+  }
+
+  function start() {
+    if (st.running) return;
+    if (st.done) reset();
+    st.running = true;
+    st.last = performance.now();
+    if (scene) scene.start();
+    el.play.textContent = "일시정지";
+    st.raf = requestAnimationFrame(frame);
+  }
+  function stop() {
+    st.running = false;
+    if (scene) scene.stop();
+    if (st.raf) cancelAnimationFrame(st.raf);
+    st.raf = 0;
+    if (!st.done) el.play.textContent = "재생";
+  }
+
+  el.play.addEventListener("click", function () { st.running ? stop() : start(); });
+  $("restart").addEventListener("click", function () { stop(); reset(); start(); });
+  el.course.addEventListener("change", function () { stop(); st.course = COURSES[+el.course.value]; reset(); start(); });
+  document.querySelectorAll("[data-pt]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      st.pt = b.getAttribute("data-pt");
+      document.querySelectorAll("[data-pt]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      render();
+    });
+  });
+  document.querySelectorAll("[data-ts]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      st.ts = +b.getAttribute("data-ts");
+      document.querySelectorAll("[data-ts]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+    });
+  });
+  el.explain.addEventListener("click", function () {
+    var on = el.scene.classList.toggle("explain");
+    el.explain.setAttribute("aria-pressed", String(on));
+    el.explain.textContent = on ? "번호 숨기기" : "① 화면 구성 번호 보기";
+  });
+  document.addEventListener("visibilitychange", function () { if (document.hidden) stop(); });
+  window.addEventListener("pagehide", stop);
+
+  reset();
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduced) start();
+})();
+</script>
+</body>
+</html>

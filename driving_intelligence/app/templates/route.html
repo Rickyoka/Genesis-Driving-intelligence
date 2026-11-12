@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}경로 가이드 · {{ course.name }}{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
+  <script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/route.js') }}?v={{ APP_VERSION }}" defer></script>
+{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="eyebrow">Map API · Speed Guide</p>
+  <h1>구간별 감속 · 정지 · 가속 가이드</h1>
+  <p class="lead">지도·경로 API에서 실제 도로 형상과 교차로 정보를 받아, 어디서 <b class="c-decel">감속</b>을 시작하고 어디서 <b class="c-stop">정지</b>하며 어디서 제한속도까지 <b class="c-accel">다시 가속</b>할 수 있는지 구간별로 안내합니다.</p>
+</header>
+
+<form class="filters card" method="get" action="{{ url_for('main.route_page') }}" data-autosubmit>
+  <label class="field field--inline"><span>코스</span>
+    <select name="course">{% for c in courses %}<option value="{{ c.id }}" {{ 'selected' if c.id == course.id }}>{{ c.name }} · {{ c.region }}</option>{% endfor %}</select></label>
+  <noscript><button class="btn btn--ghost btn--sm" type="submit">적용</button></noscript>
+</form>
+
+<div class="route" data-route>
+  <div class="route__bar">
+    <span class="seg" role="group" aria-label="감속 여유">
+      <button type="button" class="seg__btn" data-comfort="standard" aria-pressed="true">기본 (횡가속 0.20 g)</button>
+      <button type="button" class="seg__btn" data-comfort="relaxed" aria-pressed="false">여유 (0.15 g)</button>
+    </span>
+    <label class="field field--inline"><span>제한속도 (예시)</span>
+      <select data-limit>{% for v in [40, 50, 60, 70, 80] %}<option value="{{ v }}" {{ 'selected' if v == default_limit }}>{{ v }} km/h</option>{% endfor %}</select></label>
+    <span class="muted small">차량: {{ vehicle.nickname if vehicle else '미등록' }} · {{ '회생제동 감속 안내' if vehicle and vehicle.transmission == 'EV' else '엔진 브레이크 감속 안내' }}</span>
+    <span class="spacer"></span>
+    <button type="button" class="btn btn--ghost btn--sm" data-reset-wp>지점 초기화</button>
+    <button type="button" class="btn btn--magma btn--sm" data-play>주행 재생</button>
+  </div>
+
+  <div class="route__grid">
+    <section class="mapbox">
+      <div id="map" class="map" role="region" aria-label="경로 지도"></div>
+      <div class="map-legend" aria-hidden="true">
+        <span><i class="lg-decel"></i>감속</span><span><i class="lg-stop"></i>정지</span>
+        <span><i class="lg-accel"></i>가속</span><span><i class="lg-cruise"></i>정속</span>
+      </div>
+      <div class="minihud" data-minihud hidden>
+        <div class="minihud__spd"><b data-mh-spd>0</b><small>km/h</small></div>
+        <div class="minihud__main"><span class="minihud__zone" data-mh-zone>정속</span><span data-mh-next>–</span></div>
+      </div>
+      <p class="map-notice" data-notice hidden></p>
+    </section>
+
+    <aside class="card route__side">
+      <div class="route__summary" data-summary><p class="muted">경로를 계산하는 중…</p></div>
+      <h2 class="subhead">구간 안내</h2>
+      <ol class="guides" data-guides></ol>
+    </aside>
+  </div>
+
+  <section class="card">
+    <div class="card__head"><h2>권고 속도 프로파일</h2><span class="muted small" data-source></span></div>
+    <figure class="profile m0"><svg data-profile viewBox="0 0 1000 220" preserveAspectRatio="none" role="img" aria-label="거리에 따른 권고 속도 그래프"></svg>
+      <figcaption class="trace__legend"><span><i class="lg lg--line"></i> 권고 속도</span><span><i class="lg lg--limit"></i> 제한속도</span><span class="muted" data-axis>0 km</span></figcaption></figure>
+  </section>
+
+  <div class="grid-2">
+    <section class="card">
+      <h2>구간을 정하는 방법</h2>
+      <ol class="guide guide--muted small">
+        <li><b>지도·경로 API</b>: 출발 → 체크포인트 → 도착을 잇는 실제 도로 형상과 회전·교차로 정보를 받습니다. 기본값은 OSRM(OpenStreetMap 기반)이며, 카카오모빌리티·TMAP 같은 국내 경로 API로 교체할 수 있습니다.</li>
+        <li><b>도로 곡률</b>: 경로를 10 m 간격으로 나눠 앞뒤 30 m로 회전 반경을 계산합니다.</li>
+        <li><b>권고 상한 속도</b>: √(횡가속 한도 × 반경)과 제한속도 중 낮은 값을 씁니다. 횡가속 한도는 0.15~0.20 g로, 차량 성능 한계가 아닌 <b>승차감 기준</b>입니다.</li>
+        <li><b>정지·일시정지</b>: 출발, 체크포인트, 도착, T자 교차로는 0 km/h. 회전 교차로는 20~25 km/h로 제한합니다.</li>
+        <li><b>감속·가속</b>: 감속 1.5 m/s², 가속 1.0 m/s²의 완만한 기준으로 "언제부터 줄이고 언제부터 다시 올릴지"를 거꾸로·앞으로 계산합니다.</li>
+      </ol>
+    </section>
+    <section class="card">
+      <h2>안전 원칙</h2>
+      <ul class="guide guide--muted small">
+        <li>권고 속도는 <b>넘지 말아야 할 상한</b>이지 도달 목표가 아닙니다. 도로 표지·노면·날씨·교통 상황이 항상 우선합니다.</li>
+        <li>"가속" 구간은 <b>제한속도까지 회복</b>할 수 있다는 뜻이며, 제한속도를 넘는 안내는 하지 않습니다. 여유 설정은 더 낮출 수만 있습니다.</li>
+        <li>서킷 전용 성능 코칭(브레이킹 포인트·레이싱 라인)과는 다른, 공도용 안전·승차감 안내입니다. 내비 기반 크루즈 컨트롤의 곡선 감속과 같은 원리입니다.</li>
+        <li>제한속도는 예시 값입니다. 실서비스에서는 도로 속성 데이터(링크별 제한속도)와 연동해야 합니다.</li>
+      </ul>
+      <p class="note">{{ route_note }} 지도 © OpenStreetMap 기여자 · 경로 {{ 'OSRM' if provider == 'osrm' else '오프라인 시뮬레이션' }}</p>
+    </section>
+  </div>
+</div>
+<script type="application/json" id="route-config">{{ {
+  "course": course.id, "api": url_for('main.route_guide_api'), "tileUrl": tile_url, "tileAttr": tile_attr,
+  "waypoints": waypoints, "limit": default_limit
+}|tojson }}</script>
+{% endblock %}

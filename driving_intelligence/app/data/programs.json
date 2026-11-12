@@ -1,0 +1,31 @@
+{
+  "_meta": {
+    "note": "교육 프로그램과 스쿨은 시연용 예시입니다. 실제 제휴처가 아니며, 운영 시 제휴 스쿨의 실제 커리큘럼으로 교체합니다."
+  },
+  "programs": [
+    {"id": "defensive", "category": "방어운전", "title": "방어운전 기초", "level": "입문",
+     "duration": "반나절", "venue": "폐쇄 교육장", "school": "제휴 스쿨 A (예시)",
+     "targets": ["braking", "following"], "summary": "위험 예측, 시선 처리, 안전거리 확보 습관을 다집니다."},
+    {"id": "safe-braking", "category": "안전 제동", "title": "안전 제동·긴급 회피", "level": "입문",
+     "duration": "반나절", "venue": "폐쇄 교육장", "school": "제휴 스쿨 A (예시)",
+     "targets": ["braking"], "summary": "점진 제동, ABS 작동 체험, 제동 중 조향 회피를 연습합니다."},
+    {"id": "smooth-throttle", "category": "차체 자세 제어", "title": "부드러운 가속과 하중 이동", "level": "입문",
+     "duration": "반나절", "venue": "폐쇄 교육장", "school": "제휴 스쿨 B (예시)",
+     "targets": ["accel"], "summary": "가속·감속 시 하중 이동을 이해하고 부드러운 페달 조작을 익힙니다."},
+    {"id": "car-control", "category": "차체 자세 제어", "title": "차체 자세 제어 (언더·오버스티어)", "level": "중급",
+     "duration": "1일", "venue": "폐쇄 교육장 (젖은 노면)", "school": "제휴 스쿨 B (예시)",
+     "targets": ["steering", "cornering"], "summary": "미끄러운 노면에서 차량 거동을 체험하고 회복 조작을 익힙니다."},
+    {"id": "rwd-control", "category": "후륜구동 차량 제어", "title": "후륜·미드십 차량 제어", "level": "중급",
+     "duration": "1일", "venue": "폐쇄 교육장", "school": "제휴 스쿨 C (예시)",
+     "targets": ["cornering", "accel"], "drivetrains": ["FR", "MR", "RR"],
+     "summary": "후륜구동 특유의 트랙션 한계와 스로틀 조절을 안전하게 연습합니다."},
+    {"id": "manual", "category": "수동변속 교육", "title": "수동변속·레브 매칭", "level": "입문",
+     "duration": "반나절", "venue": "폐쇄 교육장", "school": "제휴 스쿨 C (예시)",
+     "targets": [], "transmissions": ["MT"],
+     "summary": "언덕 출발, 저단 엔진 브레이크, 레브 매칭 다운시프트를 익힙니다."},
+    {"id": "track-intro", "category": "서킷 입문", "title": "서킷 입문 (라인·브레이킹 포인트)", "level": "중급",
+     "duration": "1일", "venue": "서킷 (강사 동승)", "school": "제휴 서킷 D (예시)",
+     "targets": [], "min_overall": 80,
+     "summary": "깃발 신호, 주행 라인, 제동 지점을 강사 동승으로 배웁니다. 공도 기술이 안정된 운전자 대상."}
+  ]
+}

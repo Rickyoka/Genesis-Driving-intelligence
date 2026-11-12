@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#07080b">
+  <title>{% block title %}Driving Intelligence{% endblock %} · Driving Intelligence for Genesis (Concept)</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ APP_VERSION }}">
+  <script src="{{ url_for('static', filename='js/boot.js') }}?v={{ APP_VERSION }}"></script>
+  <script src="{{ url_for('static', filename='js/intro.js') }}?v={{ APP_VERSION }}" defer></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v={{ APP_VERSION }}" defer></script>
+  {% block cosmos_js %}<script src="{{ url_for('static', filename='js/cosmos.js') }}?v={{ APP_VERSION }}" defer></script>{% endblock %}
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {# ---------- engine-start intro (shown once per browser session; JS-only) ---------- #}
+  <div class="intro" id="intro" hidden data-powertrain="{{ shell_powertrain }}"
+       data-vehicle="{{ shell_vehicle.nickname if shell_vehicle else 'Driving Intelligence' }}"
+       data-engine="{{ (shell_vehicle.engine or (shell_vehicle.maker ~ ' ' ~ shell_vehicle.model)) if shell_vehicle else 'Know your car. Master your drive.' }}"
+       role="dialog" aria-modal="true" aria-label="시동 인트로">
+    <canvas class="intro__fx" data-fx aria-hidden="true"></canvas>
+    <div class="intro__hdr">
+      <h1 class="intro__title" data-title data-text="DRIVING INTELLIGENCE" aria-label="Driving Intelligence"></h1>
+      <p class="intro__tag">for Genesis · Concept — Know your car. Master your drive.</p>
+    </div>
+    <button type="button" class="ign" data-start aria-label="시동 걸기 (START STOP)">
+      <span class="ign__halo" aria-hidden="true"></span>
+      <span class="ign__ring" aria-hidden="true"></span>
+      <span class="ign__face">
+        <b>{{ 'POWER' if shell_powertrain == 'ev' else 'ENGINE' }}</b>
+        <small>START · STOP</small>
+        <i class="ign__led" aria-hidden="true"></i>
+      </span>
+    </button>
+    <p class="intro__hint">PRESS TO {{ 'POWER ON' if shell_powertrain == 'ev' else 'START' }}</p>
+    <div class="intro__car" data-car-wrap aria-hidden="true">
+      <img class="{{ 'is-photo' if shell_vehicle and shell_vehicle.photo else '' }}" src="{{ vehicle_image_url(shell_vehicle) }}" alt="">
+      <span class="intro__sweep"></span>
+    </div>
+    <p class="intro__legal">비공식 컨셉 시연입니다. Genesis 및 언급된 브랜드의 공식 앱·제휴가 아닙니다.</p>
+    <div class="intro__controls">
+      <button type="button" data-sound>사운드 켜짐</button>
+      <button type="button" data-skip>건너뛰기 (Esc)</button>
+    </div>
+  </div>
+
+  {# twin-line lamp motif streaming out of deep space (decorative, drawn by cosmos.js) #}
+  {% block cosmos %}<canvas class="cosmos" data-cosmos aria-hidden="true"></canvas>{% endblock %}
+
+  <a class="skip" href="#main">본문 바로가기</a>
+  <header class="topbar">
+    <div class="wrap topbar__inner">
+      <a class="brand" href="{{ url_for('main.index') }}" aria-label="Driving Intelligence for Genesis 홈">
+        <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 22a12 12 0 0 1 24 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16 22 23 12" stroke="#ff6a1f" stroke-width="2.2" stroke-linecap="round"/><circle cx="16" cy="22" r="2.4" fill="currentColor"/></svg>
+        <span class="brand__text"><b>Driving Intelligence</b><small>for Genesis · Concept</small></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+        <span class="sr">메뉴</span><span></span><span></span><span></span>
+      </button>
+      {% set ep = request.endpoint or '' %}
+      <nav id="site-nav" class="nav" data-nav>
+        <a href="{{ url_for('main.index') }}" class="{{ 'is-active' if ep == 'main.index' }}">홈</a>
+        <a href="{{ url_for('main.garage') }}" class="{{ 'is-active' if ep.startswith('main.garage') }}">내 차고</a>
+        <a href="{{ url_for('main.courses') }}" class="{{ 'is-active' if ep.startswith('main.course') }}">코스</a>
+        <a href="{{ url_for('main.route_page') }}" class="{{ 'is-active' if ep == 'main.route_page' }}">경로 가이드</a>
+        <a href="{{ url_for('main.drive_page') }}" class="{{ 'is-active' if ep in ('main.drive_page', 'main.hud') }}">HUD 주행</a>
+        <a href="{{ url_for('main.analyze_page') }}" class="{{ 'is-active' if ep in ('main.analyze_page', 'main.report') }}">주행 분석</a>
+        <a href="{{ url_for('main.academy_page') }}" class="{{ 'is-active' if ep == 'main.academy_page' }}">아카데미</a>
+        <a href="{{ url_for('main.passport') }}" class="{{ 'is-active' if ep.startswith('main.passport') }}">패스포트</a>
+        <a href="{{ url_for('main.stamps_page') }}" class="{{ 'is-active' if ep.startswith('main.stamps') }}">스탬프</a>
+        <a href="{{ url_for('main.datalab_page') }}" class="{{ 'is-active' if ep.startswith('main.datalab') }}">데이터 랩</a>
+        <a href="{{ url_for('main.ecosystem') }}" class="{{ 'is-active' if ep == 'main.ecosystem' }}">파트너십</a>
+        <a href="{{ url_for('main.compare') }}" class="{{ 'is-active' if ep == 'main.compare' }}">경쟁 비교</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap main" tabindex="-1">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashes" role="status">
+          {% for cat, msg in messages %}
+            <div class="flash flash--{{ 'error' if cat == 'error' else 'ok' }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <p><b>Driving Intelligence for Genesis</b> · 컨셉 프로토타입 v{{ APP_VERSION }} · Know your car. Master your drive. · <a class="link" href="?intro=1">시동 인트로 다시 보기</a></p>
+      <p class="muted">비공식 컨셉 시연입니다. Genesis, Mercedes-AMG, BMW M, Lexus, McLaren, TAG Heuer, Jaeger-LeCoultre, Garmin의 공식 앱이나 제휴가 아니며, 각 상표는 해당 소유자에게 있습니다. 공도에서는 제한속도와 교통 법규가 최우선이며, 점수·지표는 운전 자격이나 안전성을 인증하지 않습니다.</p>
+    </div>
+  </footer>
+  <div class="toasts" data-toasts aria-live="polite"></div>
+</body>
+</html>

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}HUD 내비 시연{% endblock %}
+{# full-screen road renderer here: no cosmos background #}
+{% block cosmos %}{% endblock %}
+{% block cosmos_js %}{% endblock %}
+{% block head %}<script src="{{ url_for('static', filename='js/scene.js') }}?v={{ APP_VERSION }}" defer></script>{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="eyebrow">Learned Navigation × Head-Up Display</p>
+  <h1>드라이빙 최적화 HUD 내비</h1>
+  <p class="lead">내비게이션 모듈과 헤드업 디스플레이에 연동하면, 학습된 코스 정보로 다음 코너의 방향·강도와 파워트레인별 감속 방법을 운전자 시선 위에 미리 띄웁니다. 공도에서는 <b>안전 안내만</b> 제공합니다.</p>
+</header>
+
+<form class="filters card" method="get" action="{{ url_for('main.hud') }}" data-autosubmit>
+  <label class="field field--inline"><span>코스</span>
+    <select name="course">{% for c in courses %}<option value="{{ c.id }}" {{ 'selected' if c.id == course.id }}>{{ c.name }} · {{ c.region }}</option>{% endfor %}</select></label>
+  <span class="muted small">차량: {{ vehicle.nickname if vehicle else '미등록 (일반 안내)' }} · {{ 'EV 회생제동 안내' if vehicle and vehicle.transmission == 'EV' else '엔진 브레이크 안내' }}</span>
+  <a class="btn btn--magma btn--sm" href="{{ url_for('main.drive_page', course=course.id) }}">내비 연동 HUD (감속·가속 가이드)</a>
+  <a class="btn btn--primary btn--sm" href="{{ url_for('main.route_page', course=course.id) }}">지도 경로 가이드</a>
+  <noscript><button class="btn btn--ghost btn--sm" type="submit">적용</button></noscript>
+</form>
+
+<div class="hud-wrap" data-hud>
+  <section>
+    <div class="windshield" data-windshield>
+      <span class="hud-badge">HUD 시뮬레이션 · {{ course.name }}</span>
+      <canvas class="scene-canvas" data-scene aria-hidden="true"></canvas>
+      {% set s0 = segments[0] %}
+      <div class="hud" aria-live="polite">
+        <div class="hud__speed"><span data-h="speed">{{ s0.speed }}</span><small>km/h</small></div>
+        <div class="hud__turn">
+          <svg class="hud__arrow{{ ' is-left' if s0.direction == 'left' }}" data-h="arrow" viewBox="0 0 60 60" aria-hidden="true"><path d="M18 52 V30 Q18 16 32 16 H46 M38 8 L46 16 L38 24"/></svg>
+          <div><div class="hud__dist" data-h="dist">{{ s0.distance_m }} m</div><div class="hud__sev sev-{{ s0.severity }}" data-h="sev">{{ '좌' if s0.direction == 'left' else '우' }} · {{ s0.severity_label }}</div></div>
+        </div>
+        <div class="hud__limit" data-h="limit" title="예시 제한속도">{{ s0.limit }}</div>
+        <div class="hud__msg"><span data-h="msg">{{ s0.message }}</span><span class="hud__hint" data-h="hint">{{ s0.hint }}</span></div>
+      </div>
+    </div>
+    <div class="hud-ctrl">
+      <button class="btn btn--magma btn--sm" type="button" data-hud-play aria-pressed="true">일시정지</button>
+      <button class="btn btn--ghost btn--sm" type="button" data-hud-prev>이전 구간</button>
+      <button class="btn btn--ghost btn--sm" type="button" data-hud-next>다음 구간</button>
+      <span class="muted small" data-hud-pos>1 / {{ segments|length }}</span>
+    </div>
+    <p class="note">시연용 시뮬레이션입니다. 코너 순서·거리·제한속도는 코스 특성으로 생성한 예시이며 실제 도로 형상이 아닙니다. 실서비스에서는 국내 지도 API의 도로 곡률 데이터와 차량 내비게이션·HUD 모듈 연동으로 구현합니다.</p>
+  </section>
+
+  <aside class="card">
+    <h2>구간 안내 목록</h2>
+    <ol class="seglist" data-seglist>
+      {% for s in segments %}
+        <li class="{{ 'is-current' if loop.first }}" data-idx="{{ loop.index0 }}" tabindex="0">
+          <span class="n">{{ '%02d'|format(s.idx) }}</span>
+          <span>{{ '◀' if s.direction == 'left' else '▶' }} {{ s.message }}{% if s.hint %}<br><span class="muted small">{{ s.hint }}</span>{% endif %}</span>
+          <span class="muted small">{{ s.distance_m }}m</span>
+        </li>
+      {% endfor %}
+    </ol>
+    <h3 class="subhead">모듈 연동 구조</h3>
+    <ul class="guide guide--muted small">
+      <li><b>내비게이션 모듈</b>: 학습형 코스 추천 → 경로 전송, 도로 곡률·고저차 기반 코너 예고</li>
+      <li><b>HUD</b>: 다음 코너 방향·강도, 감속 안내, 회생제동·저단 권장 표시</li>
+      <li><b>차량 데이터</b>: 속도·가감속·조향을 주행 분석과 학습 루프로 환류</li>
+      <li><b>서킷 모드</b>: 제동 지점·라인 코칭은 폐쇄 서킷에서만 활성화</li>
+    </ul>
+  </aside>
+</div>
+<script type="application/json" id="hud-data">{{ segments|tojson }}</script>
+{% endblock %}

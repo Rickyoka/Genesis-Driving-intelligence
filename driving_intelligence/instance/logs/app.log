@@ -1,0 +1,21 @@
+2026-11-11 17:32:26,699 INFO [app.services.catalog] Catalog loaded: 16 courses, 8 presets, 7 programs
+2026-11-11 17:32:26,702 INFO [app.db] Database ready: /Users/donghyuncha/Desktop/driving_intelligence/instance/driving_intelligence.sqlite3
+2026-11-11 17:32:26,728 INFO [app] Driving Intelligence 0.8.0 started
+2026-11-11 17:34:00,312 INFO [app.services.catalog] Catalog loaded: 16 courses, 8 presets, 7 programs
+2026-11-11 17:34:00,313 INFO [app.db] Database ready: /Users/donghyuncha/Desktop/driving_intelligence/instance/driving_intelligence.sqlite3
+2026-11-11 17:34:00,327 INFO [app] Driving Intelligence 0.8.0 started
+2026-11-11 17:34:03,597 INFO [app.services.catalog] Catalog loaded: 16 courses, 8 presets, 7 programs
+2026-11-11 17:34:03,598 INFO [app.db] Database ready: /Users/donghyuncha/Desktop/driving_intelligence/instance/driving_intelligence.sqlite3
+2026-11-11 17:34:03,612 INFO [app] Driving Intelligence 0.8.0 started
+2026-11-11 17:36:34,160 INFO [app.services.catalog] Catalog loaded: 16 courses, 8 presets, 7 programs
+2026-11-11 17:36:34,161 INFO [app.db] Database ready: /Users/donghyuncha/Desktop/driving_intelligence/instance/driving_intelligence.sqlite3
+2026-11-11 17:36:34,174 INFO [app] Driving Intelligence 0.8.0 started
+2026-11-11 17:36:38,804 INFO [app.services.catalog] Catalog loaded: 16 courses, 8 presets, 7 programs
+2026-11-11 17:36:38,805 INFO [app.db] Database ready: /Users/donghyuncha/Desktop/driving_intelligence/instance/driving_intelligence.sqlite3
+2026-11-11 17:36:38,818 INFO [app] Driving Intelligence 0.8.0 started
+2026-11-11 17:36:38,822 INFO [werkzeug] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:6000
+2026-11-11 17:36:38,822 INFO [werkzeug] [33mPress CTRL+C to quit[0m
+2026-11-11 17:39:34,020 INFO [app.services.catalog] Catalog loaded: 16 courses, 8 presets, 7 programs
+2026-11-11 17:39:34,021 INFO [app.db] Database ready: /Users/donghyuncha/Desktop/driving_intelligence/instance/driving_intelligence.sqlite3
+2026-11-11 17:39:34,599 INFO [app] Driving Intelligence 0.8.0 started

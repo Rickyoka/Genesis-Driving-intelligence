@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}파트너십 · 에코시스템{% endblock %}
+{% block content %}
+<header class="page-head">
+  <p class="eyebrow">Ecosystem · Partnership</p>
+  <h1>차량 · 시계 · 웨어러블을 잇는 드라이빙 에코시스템</h1>
+  <p class="lead">차량 내비·HUD 모듈과 앱, 교육, 시계와 웨어러블을 하나의 성장 루프로 연결합니다. 아래 협업안은 <b>제안용 가상 시나리오</b>이며 실제 제휴가 아닙니다.</p>
+</header>
+
+<section class="flow" aria-label="에코시스템 흐름">
+  <div class="flow__node"><b>차량</b><span class="muted small">내비·HUD 모듈, 차량 데이터 API, 센서</span></div>
+  <div class="flow__node flow__node--core"><b>Driving Intelligence</b><span class="muted small">학습형 코스·HUD 안내·주행 분석</span></div>
+  <div class="flow__node"><b>Academy</b><span class="muted small">약점 맞춤 교육·서킷 입문</span></div>
+  <div class="flow__node"><b>Passport × 시계</b><span class="muted small">성장 기록·마일스톤 에디션</span></div>
+  <div class="flow__node"><b>Magma Data Lab</b><span class="muted small">동의 기반 익명 집계 → 고성능 개발</span></div>
+</section>
+
+<div class="partner-grid">
+  <article class="card partner">
+    <div class="partner__head"><p class="partner__name">TAG Heuer</p><span class="synthetic">가상 시나리오</span></div>
+    <div class="watch" aria-hidden="true">
+      <svg viewBox="0 0 160 200">
+        <rect class="watch__strap" x="52" y="0" width="56" height="200" rx="10"/>
+        <circle class="watch__case" cx="80" cy="100" r="62"/>
+        <circle class="watch__dial" cx="80" cy="100" r="56"/>
+        {% for a in range(0, 360, 30) %}<line class="watch__tick" x1="80" y1="48" x2="80" y2="56" transform="rotate({{ a }} 80 100)"/>{% endfor %}
+        <path class="watch__accent" d="M80 58 A42 42 0 1 1 46 124"/>
+        <text class="watch__txt" x="80" y="84">LAP 03</text>
+        <text class="watch__big" x="80" y="110">1:52.4</text>
+        <text class="watch__txt" x="80" y="130">Δ −0.8s</text>
+      </svg>
+    </div>
+    <p class="muted small">모터스포츠 타이밍 감성을 살린 서킷·아카데미 연계</p>
+    <ul>
+      <li>서킷 세션의 랩타임·구간 기록을 워치 페이스에 동기화</li>
+      <li>아카데미 서킷 입문 수료자 대상 공동 크로노그래프 에디션 제안</li>
+      <li>Magma 오너 트랙데이 타이밍 파트너 프로그램</li>
+    </ul>
+  </article>
+
+  <article class="card partner">
+    <div class="partner__head"><p class="partner__name">Jaeger-LeCoultre</p><span class="synthetic">가상 시나리오</span></div>
+    <div class="watch" aria-hidden="true">
+      <svg viewBox="0 0 160 200">
+        <rect class="watch__strap" x="52" y="0" width="56" height="200" rx="10"/>
+        <rect class="watch__case" x="28" y="42" width="104" height="116" rx="14"/>
+        <rect class="watch__dial" x="36" y="50" width="88" height="100" rx="8"/>
+        <path class="watch__accent watch__accent--copper" d="M50 132 H110"/>
+        <text class="watch__txt" x="80" y="80">PASSPORT</text>
+        <text class="watch__big" x="80" y="108">LV. 3</text>
+        <text class="watch__txt" x="80" y="148">ACADEMY</text>
+      </svg>
+    </div>
+    <p class="muted small">하이엔드 오너 경험 · 성장 마일스톤의 가치화</p>
+    <ul>
+      <li>Driving Passport 마일스톤 달성 시 기념 각인 서비스 제안</li>
+      <li>플래그십·Magma 고객 대상 프라이빗 드라이빙 × 워치메이킹 클래스</li>
+      <li>교육 이수 기록은 공식 수료증과 분리해 기념품 성격으로만 운영</li>
+    </ul>
+  </article>
+
+  <article class="card partner">
+    <div class="partner__head"><p class="partner__name">Garmin</p><span class="synthetic">가상 시나리오</span></div>
+    <div class="watch" aria-hidden="true">
+      <svg viewBox="0 0 160 200">
+        <rect class="watch__strap" x="52" y="0" width="56" height="200" rx="10"/>
+        <circle class="watch__case" cx="80" cy="100" r="62"/>
+        <circle class="watch__dial" cx="80" cy="100" r="56"/>
+        <path class="watch__accent" d="M44 70 A44 44 0 0 1 116 70"/>
+        <text class="watch__txt" x="80" y="86">♥ 81 bpm</text>
+        <text class="watch__big" x="80" y="112">300 m</text>
+        <text class="watch__txt" x="80" y="132">◀ 급커브 · 감속</text>
+      </svg>
+    </div>
+    <p class="muted small">웨어러블 생체 데이터 × 주행 분석 <span class="chip chip--ok">프로토타입 반영</span></p>
+    <ul>
+      <li>심박 데이터를 주행 로그와 결합해 급조작 직후 긴장도 분석 (현재 CSV <code>heart_rate_bpm</code> 지원)</li>
+      <li>손목 햅틱으로 코너 예고 · 공도에서는 안전 알림만</li>
+      <li>서킷 데이터 로거·텔레메트리 가져오기 (Phase 4)</li>
+    </ul>
+  </article>
+</div>
+
+<section class="card">
+  <h2>연동 포인트</h2>
+  <div class="integrations">
+    <div class="integ"><b>내비게이션 모듈</b><span class="muted small">학습형 추천 경로 전송, 도로 곡률 기반 코너 예고</span></div>
+    <div class="integ"><b>헤드업 디스플레이</b><span class="muted small">다음 코너·감속·회생제동 안내 (<a class="link" href="{{ url_for('main.hud') }}">시연 보기</a>)</span></div>
+    <div class="integ"><b>차량 데이터 API</b><span class="muted small">속도·가감속·조향·모드 데이터 수집 (동의 기반)</span></div>
+    <div class="integ"><b>웨어러블 SDK</b><span class="muted small">심박·스트레스 데이터, 햅틱 알림</span></div>
+  </div>
+  <p class="note">브랜드명은 협업 대상 설명을 위해서만 표기했으며, 시계 이미지는 각 브랜드 디자인이 아닌 일반 컨셉 목업입니다.</p>
+</section>
+{% endblock %}
